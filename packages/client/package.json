@@ -1,6 +1,6 @@
 {
   "name": "@dfsync/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reliable service-to-service HTTP communication toolkit for Node.js and TypeScript",
   "license": "MIT",
   "type": "module",
