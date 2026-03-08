@@ -8,6 +8,18 @@ The project focuses on predictable networking behavior, consistent error handlin
 
 ---
 
+## Requirements:
+
+- Node >= 20
+- pnpm >= 10
+
+Setup:
+
+```bash
+corepack enable
+pnpm install
+```
+
 ## Packages
 
 ### `@dfsync/client`
