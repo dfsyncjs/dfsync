@@ -18,6 +18,24 @@
     "dist",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dfsyncjs/dfsync.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/dfsyncjs/dfsync/tree/main/packages/client#readme",
+  "bugs": {
+    "url": "https://github.com/dfsyncjs/dfsync/issues"
+  },
+  "keywords": [
+    "typescript",
+    "nodejs",
+    "http-client",
+    "microservices",
+    "backend",
+    "service-to-service",
+    "api-client"
+  ],
   "engines": {
     "node": ">=18"
   },

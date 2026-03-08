@@ -7,9 +7,13 @@
     "test": "pnpm -r test",
     "test:watch": "pnpm -r test:watch",
     "lint": "pnpm -r lint",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "typescript": "^5.7.3"
   }
 }
