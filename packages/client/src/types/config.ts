@@ -1,4 +1,4 @@
-import type { HeadersMap } from "./common";
+import type { HeadersMap } from './common';
 
 export type ClientConfig = {
   baseUrl: string;

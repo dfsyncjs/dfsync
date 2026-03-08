@@ -1,5 +1,5 @@
-import type { HeadersMap } from "./common";
-import type { RequestConfig } from "./request";
+import type { HeadersMap } from './common';
+import type { RequestConfig } from './request';
 
 export type BeforeRequestContext = {
   request: RequestConfig;

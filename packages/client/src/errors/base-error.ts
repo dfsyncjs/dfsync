@@ -5,7 +5,7 @@ export class DfsyncError extends Error {
   constructor(message: string, code: string, cause?: unknown) {
     super(message);
 
-    this.name = "DfsyncError";
+    this.name = 'DfsyncError';
     this.code = code;
     this.cause = cause;
   }

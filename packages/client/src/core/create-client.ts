@@ -1,14 +1,14 @@
-import type { Client } from "../types/client";
-import type { ClientConfig } from "../types/config";
-import type { RequestConfig, RequestOptions } from "../types/request";
-import { request } from "./request";
+import type { Client } from '../types/client';
+import type { ClientConfig } from '../types/config';
+import type { RequestConfig, RequestOptions } from '../types/request';
+import { request } from './request';
 
 export function createClient(config: ClientConfig): Client {
   return {
     get<T = unknown>(path: string, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
-        method: "GET",
+        method: 'GET',
         path,
       });
     },
@@ -16,7 +16,7 @@ export function createClient(config: ClientConfig): Client {
     post<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
-        method: "POST",
+        method: 'POST',
         path,
         body,
       });
@@ -25,7 +25,7 @@ export function createClient(config: ClientConfig): Client {
     put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
-        method: "PUT",
+        method: 'PUT',
         path,
         body,
       });
@@ -34,7 +34,7 @@ export function createClient(config: ClientConfig): Client {
     delete<T = unknown>(path: string, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
-        method: "DELETE",
+        method: 'DELETE',
         path,
       });
     },
