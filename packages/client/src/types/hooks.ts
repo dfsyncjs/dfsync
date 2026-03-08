@@ -18,17 +18,11 @@ export type ErrorContext = {
   attempt: number;
 };
 
-export type HookBeforeRequest = (
-  ctx: BeforeRequestContext
-) => void | Promise<void>;
+export type HookBeforeRequest = (ctx: BeforeRequestContext) => void | Promise<void>;
 
-export type HookAfterResponse = <T = unknown>(
-  ctx: AfterResponseContext<T>
-) => void | Promise<void>;
+export type HookAfterResponse = <T = unknown>(ctx: AfterResponseContext<T>) => void | Promise<void>;
 
-export type HookOnError = (
-  ctx: ErrorContext
-) => void | Promise<void>;
+export type HookOnError = (ctx: ErrorContext) => void | Promise<void>;
 
 export type HooksConfig = {
   beforeRequest?: HookBeforeRequest | HookBeforeRequest[];

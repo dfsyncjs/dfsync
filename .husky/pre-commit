@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+echo "Formatting staged files..."
+pnpm lint-staged
+
+echo "Checking TypeScript types..."
+pnpm --filter @dfsync/client lint

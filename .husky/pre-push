@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+echo "Running checks before push..."
+
+pnpm --filter @dfsync/client lint
+pnpm --filter @dfsync/client test

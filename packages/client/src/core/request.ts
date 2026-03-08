@@ -11,7 +11,7 @@ const DEFAULT_TIMEOUT = 5000;
 
 export async function request<T>(
   clientConfig: ClientConfig,
-  requestConfig: RequestConfig
+  requestConfig: RequestConfig,
 ): Promise<T> {
   const fetchImpl = clientConfig.fetch ?? globalThis.fetch;
 

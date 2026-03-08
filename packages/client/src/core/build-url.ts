@@ -1,13 +1,7 @@
 import type { QueryParams } from "../types/common";
 
-export function buildUrl(
-  baseUrl: string,
-  path: string,
-  query?: QueryParams
-): string {
-  const normalizedBaseUrl = baseUrl.endsWith("/")
-    ? baseUrl.slice(0, -1)
-    : baseUrl;
+export function buildUrl(baseUrl: string, path: string, query?: QueryParams): string {
+  const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 

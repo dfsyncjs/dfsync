@@ -13,11 +13,7 @@ export function createClient(config: ClientConfig): Client {
       });
     },
 
-    post<T = unknown>(
-      path: string,
-      body?: unknown,
-      options?: RequestOptions
-    ): Promise<T> {
+    post<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
         method: "POST",
@@ -26,11 +22,7 @@ export function createClient(config: ClientConfig): Client {
       });
     },
 
-    put<T = unknown>(
-      path: string,
-      body?: unknown,
-      options?: RequestOptions
-    ): Promise<T> {
+    put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
       return request<T>(config, {
         ...options,
         method: "PUT",
