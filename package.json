@@ -13,6 +13,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
+    "example": "pnpm --filter dfsync-node-basic-example start",
     "prepare": "husky"
   },
   "devDependencies": {
