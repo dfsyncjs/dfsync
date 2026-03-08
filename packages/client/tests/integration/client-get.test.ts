@@ -29,7 +29,7 @@ describe("client.get", () => {
       "https://api.test.com/users/1",
       expect.objectContaining({
         method: "GET",
-      })
+      }),
     );
   });
 });
