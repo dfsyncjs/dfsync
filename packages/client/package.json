@@ -18,6 +18,10 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dfsyncjs/dfsync.git",
