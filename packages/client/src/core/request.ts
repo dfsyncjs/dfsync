@@ -30,15 +30,12 @@ export async function request<T>(
   let body: BodyInit | undefined;
 
   if (requestConfig.body !== undefined) {
-    const isStringBody = typeof requestConfig.body === "string";
-
-    if (!isStringBody) {
+    if (typeof requestConfig.body === "string") {
+      body = requestConfig.body;
+    } else {
       headers["content-type"] = headers["content-type"] ?? "application/json";
+      body = JSON.stringify(requestConfig.body);
     }
-
-    body = isStringBody
-      ? requestConfig.body
-      : JSON.stringify(requestConfig.body);
   }
 
   const timeout = requestConfig.timeout ?? clientConfig.timeout ?? DEFAULT_TIMEOUT;
@@ -49,12 +46,17 @@ export async function request<T>(
   }, timeout);
 
   try {
-    const response = await fetchImpl(url, {
+    const init: RequestInit = {
       method: requestConfig.method,
       headers,
-      body,
       signal: controller.signal,
-    });
+    };
+
+    if (body !== undefined) {
+      init.body = body;
+    }
+
+    const response = await fetchImpl(url, init);
 
     const data = await parseResponse(response);
 
