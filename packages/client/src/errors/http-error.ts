@@ -7,10 +7,8 @@ export class HttpError extends DfsyncError {
   public readonly response: Response;
 
   constructor(response: Response, data?: unknown) {
-    super(
-      `HTTP ${response.status} ${response.statusText}`,
-      "HTTP_ERROR"
-    );
+    super(`HTTP ${response.status} ${response.statusText}`, "HTTP_ERROR");
+
     this.name = "HttpError";
     this.status = response.status;
     this.statusText = response.statusText;
