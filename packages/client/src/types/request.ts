@@ -1,6 +1,6 @@
-import type { QueryParams, HeadersMap } from "./common";
+import type { QueryParams, HeadersMap } from './common';
 
-export type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 export type RequestConfig = {
   method: RequestMethod;
@@ -11,4 +11,4 @@ export type RequestConfig = {
   timeout?: number;
 };
 
-export type RequestOptions = Omit<RequestConfig, "method" | "path" | "body">;
+export type RequestOptions = Omit<RequestConfig, 'method' | 'path' | 'body'>;

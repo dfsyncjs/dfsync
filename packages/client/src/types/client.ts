@@ -1,4 +1,4 @@
-import type { RequestConfig, RequestOptions } from "./request";
+import type { RequestConfig, RequestOptions } from './request';
 
 export type Client = {
   get<T = unknown>(path: string, options?: RequestOptions): Promise<T>;

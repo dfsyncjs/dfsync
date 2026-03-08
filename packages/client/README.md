@@ -24,14 +24,14 @@ npm install @dfsync/client
 ## Quick Start
 
 ```typescript
-import { createClient } from "@dfsync/client";
+import { createClient } from '@dfsync/client';
 
 const client = createClient({
-  baseUrl: "https://api.example.com",
+  baseUrl: 'https://api.example.com',
   timeout: 5000,
 });
 
-const users = await client.get("/users");
+const users = await client.get('/users');
 ```
 
 ## Usage
@@ -39,10 +39,10 @@ const users = await client.get("/users");
 ### Create a client
 
 ```typescript
-import { createClient } from "@dfsync/client";
+import { createClient } from '@dfsync/client';
 
 const client = createClient({
-  baseUrl: "https://api.example.com",
+  baseUrl: 'https://api.example.com',
   timeout: 5000,
 });
 ```
@@ -51,10 +51,10 @@ Optional configuration:
 
 ```typescript
 const client = createClient({
-  baseUrl: "https://api.example.com",
+  baseUrl: 'https://api.example.com',
   timeout: 5000,
   headers: {
-    Authorization: "Bearer token",
+    Authorization: 'Bearer token',
   },
 });
 ```
@@ -62,22 +62,22 @@ const client = createClient({
 ### GET request
 
 ```typescript
-const users = await client.get("/users");
+const users = await client.get('/users');
 ```
 
 ### POST request
 
 ```typescript
-const user = await client.post("/users", {
-  name: "John",
-  email: "john@example.com",
+const user = await client.post('/users', {
+  name: 'John',
+  email: 'john@example.com',
 });
 ```
 
 ### Query parameters
 
 ```typescript
-const users = await client.get("/users", {
+const users = await client.get('/users', {
   query: {
     page: 1,
     limit: 20,
@@ -93,12 +93,12 @@ Example:
 
 ```typescript
 try {
-  const users = await client.get("/users");
+  const users = await client.get('/users');
   return users;
 } catch (error) {
   if (error instanceof HttpError) {
     if (error.status === 401) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     if (error.status === 404) {
@@ -108,12 +108,12 @@ try {
 
   // Handling timeout errors
   if (error instanceof TimeoutError) {
-    console.error("Service timeout");
+    console.error('Service timeout');
   }
 
   // Handling network errors
   if (error instanceof NetworkError) {
-    console.error("Network failure");
+    console.error('Network failure');
   }
 
   throw error;

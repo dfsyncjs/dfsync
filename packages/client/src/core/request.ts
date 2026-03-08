@@ -1,11 +1,11 @@
-import { HttpError } from "../errors/http-error";
-import { NetworkError } from "../errors/network-error";
-import { TimeoutError } from "../errors/timeout-error";
-import type { HeadersMap } from "../types/common";
-import type { ClientConfig } from "../types/config";
-import type { RequestConfig } from "../types/request";
-import { buildUrl } from "./build-url";
-import { parseResponse } from "./parse-response";
+import { HttpError } from '../errors/http-error';
+import { NetworkError } from '../errors/network-error';
+import { TimeoutError } from '../errors/timeout-error';
+import type { HeadersMap } from '../types/common';
+import type { ClientConfig } from '../types/config';
+import type { RequestConfig } from '../types/request';
+import { buildUrl } from './build-url';
+import { parseResponse } from './parse-response';
 
 const DEFAULT_TIMEOUT = 5000;
 
@@ -16,13 +16,13 @@ export async function request<T>(
   const fetchImpl = clientConfig.fetch ?? globalThis.fetch;
 
   if (!fetchImpl) {
-    throw new Error("No fetch implementation available");
+    throw new Error('No fetch implementation available');
   }
 
   const url = buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query);
 
   const headers: HeadersMap = {
-    accept: "application/json",
+    accept: 'application/json',
     ...(clientConfig.headers ?? {}),
     ...(requestConfig.headers ?? {}),
   };
@@ -30,10 +30,10 @@ export async function request<T>(
   let body: BodyInit | undefined;
 
   if (requestConfig.body !== undefined) {
-    if (typeof requestConfig.body === "string") {
+    if (typeof requestConfig.body === 'string') {
       body = requestConfig.body;
     } else {
-      headers["content-type"] = headers["content-type"] ?? "application/json";
+      headers['content-type'] = headers['content-type'] ?? 'application/json';
       body = JSON.stringify(requestConfig.body);
     }
   }
@@ -70,11 +70,11 @@ export async function request<T>(
       throw error;
     }
 
-    if (error instanceof Error && error.name === "AbortError") {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new TimeoutError(timeout, error);
     }
 
-    throw new NetworkError("Network request failed", error);
+    throw new NetworkError('Network request failed', error);
   } finally {
     clearTimeout(timeoutId);
   }

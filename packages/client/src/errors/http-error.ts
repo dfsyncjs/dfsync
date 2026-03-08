@@ -1,4 +1,4 @@
-import { DfsyncError } from "./base-error";
+import { DfsyncError } from './base-error';
 
 export class HttpError extends DfsyncError {
   public readonly status: number;
@@ -7,9 +7,9 @@ export class HttpError extends DfsyncError {
   public readonly response: Response;
 
   constructor(response: Response, data?: unknown) {
-    super(`HTTP ${response.status} ${response.statusText}`, "HTTP_ERROR");
+    super(`HTTP ${response.status} ${response.statusText}`, 'HTTP_ERROR');
 
-    this.name = "HttpError";
+    this.name = 'HttpError';
     this.status = response.status;
     this.statusText = response.statusText;
     this.data = data;

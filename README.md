@@ -49,14 +49,14 @@ npm install @dfsync/client
 Example:
 
 ```typescript
-import { createClient } from "@dfsync/client";
+import { createClient } from '@dfsync/client';
 
 const client = createClient({
-  baseUrl: "https://api.example.com",
+  baseUrl: 'https://api.example.com',
   timeout: 5000,
 });
 
-const users = await client.get("/users");
+const users = await client.get('/users');
 ```
 
 Full documentation:
