@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.1.3
+
+### Patch Changes
+
+- [#15](https://github.com/dfsyncjs/dfsync/pull/15) [`a7cc437`](https://github.com/dfsyncjs/dfsync/commit/a7cc437abc6937cf1fccb1a423a4884abaeeaee0) Thanks [@romanindev](https://github.com/romanindev)! - doc updates, added home page
+
 ## 0.1.2
 
 ### Patch Changes
