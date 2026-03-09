@@ -28,7 +28,7 @@
     "url": "git+https://github.com/dfsyncjs/dfsync.git",
     "directory": "packages/client"
   },
-  "homepage": "https://github.com/dfsyncjs/dfsync/tree/main/packages/client#readme",
+  "homepage": "https://dfsyncjs.github.io/",
   "bugs": {
     "url": "https://github.com/dfsyncjs/dfsync/issues"
   },

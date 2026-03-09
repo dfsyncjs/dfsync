@@ -37,12 +37,6 @@ Features:
 Install:
 
 ```bash
-pnpm add @dfsync/client
-```
-
-or
-
-```bash
 npm install @dfsync/client
 ```
 
@@ -59,8 +53,11 @@ const client = createClient({
 const users = await client.get('/users');
 ```
 
-Full documentation:
+View on npm:
 [https://www.npmjs.com/package/@dfsync/client](https://www.npmjs.com/package/@dfsync/client)
+
+Home page:
+[https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
 ## Project Structure
 

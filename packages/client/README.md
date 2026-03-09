@@ -9,13 +9,10 @@ Reliable service-to-service HTTP communication for Node.js and TypeScript.
 
 Designed for backend services, microservices and internal APIs where consistent and reliable HTTP communication between services is required.
 
+Home page:
+[https://dfsyncjs.github.io](https://dfsyncjs.github.io)
+
 ## Install
-
-```bash
-pnpm add @dfsync/client
-```
-
-or
 
 ```bash
 npm install @dfsync/client
