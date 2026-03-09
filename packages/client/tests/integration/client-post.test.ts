@@ -15,7 +15,7 @@ describe('client.post', () => {
       fetch: fetchMock,
     });
 
-    const result = await client.post('/users', { name: 'Roman' });
+    const result = await client.post('/users', { name: 'Tom' });
 
     expect(result).toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -30,7 +30,7 @@ describe('client.post', () => {
     const headers = init?.headers as Record<string, string>;
     expect(headers.accept).toBe('application/json');
     expect(headers['content-type']).toBe('application/json');
-    expect(init?.body).toBe(JSON.stringify({ name: 'Roman' }));
+    expect(init?.body).toBe(JSON.stringify({ name: 'Tom' }));
   });
 
   it('keeps string body as-is and does not force content-type', async () => {
