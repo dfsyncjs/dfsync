@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 echo "Running CI checks..."
-pnpm ci
+pnpm run ci
