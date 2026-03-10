@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
-echo "Running checks before push..."
-
+echo "Checking TypeScript types..."
 pnpm --filter @dfsync/client lint
+
+echo "Running tests..."
 pnpm --filter @dfsync/client test
