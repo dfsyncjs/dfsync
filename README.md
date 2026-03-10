@@ -29,10 +29,11 @@ A lightweight HTTP client designed for service-to-service communication.
 Features:
 
 - typed responses
-- request timeouts
-- consistent error handling
+- request timeout support
 - automatic JSON parsing
-- designed for Node.js services
+- consistent error handling
+- auth support: bearer, API key, custom
+- lifecycle hooks: beforeRequest, afterResponse, onError
 
 Install:
 
