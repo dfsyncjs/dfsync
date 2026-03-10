@@ -1,7 +1,4 @@
 #!/usr/bin/env sh
 
-echo "Checking TypeScript types..."
-pnpm --filter @dfsync/client lint
-
-echo "Running tests..."
-pnpm --filter @dfsync/client test
+echo "Running CI checks..."
+pnpm run ci
