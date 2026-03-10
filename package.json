@@ -8,24 +8,28 @@
     "test:coverage": "pnpm -r test:coverage",
     "test:watch": "pnpm -r test:watch",
     "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
-    "example": "pnpm --filter dfsync-node-basic-example start",
     "prepare": "husky"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.0.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.2",
     "prettier": "^3.8.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.57.0"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
