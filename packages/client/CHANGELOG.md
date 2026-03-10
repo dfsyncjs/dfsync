@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.2.0
+
+### Minor Changes
+
+- [#18](https://github.com/dfsyncjs/dfsync/pull/18) [`d07057f`](https://github.com/dfsyncjs/dfsync/commit/d07057f0b9b29fbc3eb53f791cf89376161b79c3) Thanks [@romanindev](https://github.com/romanindev)! - add auth & lifecycle hooks
+
 ## 0.1.3
 
 ### Patch Changes
