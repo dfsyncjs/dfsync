@@ -5,14 +5,14 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "test:coverage": "pnpm -r test:coverage",
     "test:watch": "pnpm -r test:watch",
+    "coverage": "pnpm -r coverage",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ci": "pnpm typecheck && pnpm lint && pnpm test",
+    "ci": "pnpm run format:check && pnpm run typecheck && pnpm run lint && pnpm run test",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
@@ -37,7 +37,7 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{json,css,md,yml,yaml}": [
+    "*.{json,css,md,yml,yaml,mjs}": [
       "prettier --write"
     ]
   }
