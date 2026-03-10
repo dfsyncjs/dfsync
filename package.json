@@ -5,6 +5,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
     "test:watch": "pnpm -r test:watch",
     "lint": "pnpm -r lint",
     "clean": "pnpm -r clean",

@@ -12,6 +12,17 @@ Designed for backend services, microservices and internal APIs where consistent 
 Home page:
 [https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
+## Features
+
+- lightweight HTTP client for backend services
+- typed responses
+- request timeout support
+- automatic JSON parsing
+- consistent error handling
+- auth support: bearer, API key, custom
+- lifecycle hooks: beforeRequest, afterResponse, onError
+- minimal dependencies
+
 ## Install
 
 ```bash
@@ -82,6 +93,135 @@ const users = await client.get('/users', {
 });
 ```
 
+## Auth
+
+### Bearer token
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: {
+    type: 'bearer',
+    token: process.env.API_TOKEN!,
+  },
+});
+```
+
+### Async bearer token
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: {
+    type: 'bearer',
+    token: async () => {
+      return process.env.API_TOKEN!;
+    },
+  },
+});
+```
+
+### API key in header
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: {
+    type: 'apiKey',
+    value: process.env.API_KEY!,
+  },
+});
+```
+
+### API key in query
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: {
+    type: 'apiKey',
+    value: process.env.API_KEY!,
+    in: 'query',
+    name: 'api_key',
+  },
+});
+```
+
+### Custom auth
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  auth: {
+    type: 'custom',
+    apply: ({ headers, url }) => {
+      headers['x-service-name'] = 'billing-worker';
+      url.searchParams.set('tenant', 'acme');
+    },
+  },
+});
+```
+
+## Hooks
+
+### beforeRequest
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    beforeRequest: ({ headers }) => {
+      headers['x-request-id'] = crypto.randomUUID();
+    },
+  },
+});
+```
+
+### afterResponse
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    afterResponse: ({ response, data }) => {
+      console.log('status:', response.status);
+      console.log('data:', data);
+    },
+  },
+});
+```
+
+### onError
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    onError: ({ error }) => {
+      console.error('request failed:', error);
+    },
+  },
+});
+```
+
+### Multiple hooks
+
+```typescript
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    beforeRequest: [
+      ({ headers }) => {
+        headers['x-service-name'] = 'gateway';
+      },
+      ({ headers }) => {
+        headers['x-request-id'] = crypto.randomUUID();
+      },
+    ],
+  },
+});
+```
+
 ## Error Handling
 
 Requests may throw structured errors depending on the failure type.
@@ -125,27 +265,12 @@ Typical error categories:
 
 This makes it easier to handle failures in service-to-service communication.
 
-## Features
-
-- lightweight HTTP client for backend services
-- built for Node.js and TypeScript
-- service-to-service API communication
-- typed responses
-- request timeouts
-- automatic JSON parsing
-- consistent error handling
-- minimal dependencies
-
-## Future
+## Roadmap
 
 The goal of dfsync is to become a reliable toolkit for service-to-service communication.
 
-Planned features include:
+Planned next steps:
 
-- automatic retries
-- request hooks / middleware
-- tracing support
-- metrics and observability
-- circuit breaker support
-- advanced error handling strategies
-- service communication patterns for microservices
+- Retry policies
+- Tracing support
+- Extended hooks and observability features

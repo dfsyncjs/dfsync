@@ -48,6 +48,7 @@
     "build": "tsup",
     "clean": "rm -rf dist coverage",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "tsc --noEmit -p tsconfig.json"

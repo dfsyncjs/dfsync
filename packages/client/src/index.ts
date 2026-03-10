@@ -5,6 +5,16 @@ export { HttpError } from './errors/http-error';
 export { NetworkError } from './errors/network-error';
 export { TimeoutError } from './errors/timeout-error';
 
+export type { AuthConfig } from './types/auth';
 export type { Client } from './types/client';
 export type { ClientConfig } from './types/config';
-export type { RequestConfig, RequestOptions, RequestMethod } from './types/request';
+export type {
+  AfterResponseContext,
+  BeforeRequestContext,
+  ErrorContext,
+  HooksConfig,
+  HookAfterResponse,
+  HookBeforeRequest,
+  HookOnError,
+} from './types/hooks';
+export type { RequestConfig, RequestMethod, RequestOptions } from './types/request';

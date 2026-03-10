@@ -4,10 +4,24 @@ import { TimeoutError } from '../errors/timeout-error';
 import type { HeadersMap } from '../types/common';
 import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
+import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
 import { parseResponse } from './parse-response';
+import { runHooks, runHooksSafely } from './run-hooks';
 
 const DEFAULT_TIMEOUT = 5000;
+
+function normalizeError(error: unknown, timeout: number): Error {
+  if (error instanceof HttpError) {
+    return error;
+  }
+
+  if (error instanceof Error && error.name === 'AbortError') {
+    return new TimeoutError(timeout, error);
+  }
+
+  return new NetworkError('Network request failed', error);
+}
 
 export async function request<T>(
   clientConfig: ClientConfig,
@@ -19,13 +33,26 @@ export async function request<T>(
     throw new Error('No fetch implementation available');
   }
 
-  const url = buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query);
+  const url = new URL(buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query));
 
   const headers: HeadersMap = {
     accept: 'application/json',
     ...(clientConfig.headers ?? {}),
     ...(requestConfig.headers ?? {}),
   };
+
+  await applyAuth({
+    auth: clientConfig.auth,
+    request: requestConfig,
+    url,
+    headers,
+  });
+
+  await runHooks(clientConfig.hooks?.beforeRequest, {
+    request: requestConfig,
+    url,
+    headers,
+  });
 
   let body: BodyInit | undefined;
 
@@ -39,11 +66,14 @@ export async function request<T>(
   }
 
   const timeout = requestConfig.timeout ?? clientConfig.timeout ?? DEFAULT_TIMEOUT;
-
   const controller = new AbortController();
+
   const timeoutId = setTimeout(() => {
     controller.abort();
   }, timeout);
+
+  let response: Response;
+  let data: unknown;
 
   try {
     const init: RequestInit = {
@@ -56,26 +86,34 @@ export async function request<T>(
       init.body = body;
     }
 
-    const response = await fetchImpl(url, init);
-
-    const data = await parseResponse(response);
+    response = await fetchImpl(url.toString(), init);
+    data = await parseResponse(response);
 
     if (!response.ok) {
       throw new HttpError(response, data);
     }
+  } catch (rawError) {
+    const error = normalizeError(rawError, timeout);
 
-    return data as T;
-  } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
-    }
+    await runHooksSafely(clientConfig.hooks?.onError, {
+      request: requestConfig,
+      url,
+      headers,
+      error,
+    });
 
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new TimeoutError(timeout, error);
-    }
-
-    throw new NetworkError('Network request failed', error);
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
+
+  await runHooks(clientConfig.hooks?.afterResponse, {
+    request: requestConfig,
+    url,
+    headers,
+    response,
+    data,
+  });
+
+  return data as T;
 }
