@@ -5,7 +5,6 @@
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -25,7 +24,7 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dfsyncjs/dfsync.git",
+    "url": "https://github.com/dfsyncjs/dfsync.git",
     "directory": "packages/client"
   },
   "homepage": "https://dfsyncjs.github.io",
@@ -48,13 +47,11 @@
     "build": "tsup",
     "clean": "rm -rf dist coverage",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "lint:strict": "eslint . --max-warnings 0"
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",

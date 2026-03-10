@@ -12,6 +12,7 @@
     "clean": "pnpm -r clean",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "ci": "pnpm typecheck && pnpm lint && pnpm test",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",

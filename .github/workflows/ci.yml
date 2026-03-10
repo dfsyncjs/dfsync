@@ -29,6 +29,9 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
+      - name: Typecheck
+        run: pnpm --filter @dfsync/client typecheck
+
       - name: Lint
         run: pnpm --filter @dfsync/client lint
 
