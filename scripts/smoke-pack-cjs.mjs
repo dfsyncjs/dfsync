@@ -33,7 +33,7 @@ if (!tgzFile) {
 const tgzPath = join(tempDir, tgzFile);
 
 // 4. Install tarball into isolated smoke project without lifecycle scripts
-execSync(`npm install --ignore-scripts "${tgzPath}"`, {
+execSync(`npm install --ignore-scripts --no-save "${tgzPath}"`, {
   cwd: smokeDir,
   stdio: 'inherit',
 });

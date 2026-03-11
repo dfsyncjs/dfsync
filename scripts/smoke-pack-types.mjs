@@ -39,7 +39,7 @@ execSync('npm install --ignore-scripts', {
 });
 
 // 5. Install packed tarball
-execSync(`npm install --ignore-scripts "${tgzPath}"`, {
+execSync(`npm install --ignore-scripts --no-save "${tgzPath}"`, {
   cwd: smokeDir,
   stdio: 'inherit',
 });
