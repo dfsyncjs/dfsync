@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.2.1
+
+### Patch Changes
+
+- [#26](https://github.com/dfsyncjs/dfsync/pull/26) [`e60b9d1`](https://github.com/dfsyncjs/dfsync/commit/e60b9d152b39a6f406cdd55ed570b78e92e11c46) Thanks [@romanindev](https://github.com/romanindev)! - stability improvements
+
 ## 0.2.0
 
 ### Minor Changes
