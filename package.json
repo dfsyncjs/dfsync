@@ -17,6 +17,7 @@
     "smoke:pack:cjs": "node scripts/smoke-pack-cjs.mjs",
     "smoke:pack:types": "node scripts/smoke-pack-types.mjs",
     "smoke:pack": "pnpm smoke:pack:esm && pnpm smoke:pack:cjs && pnpm smoke:pack:types",
+    "verify:release": "pnpm test && pnpm smoke:pack",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
