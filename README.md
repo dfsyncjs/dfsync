@@ -86,3 +86,36 @@ Build packages:
 ```bash
 pnpm build
 ```
+
+## How to verify the package before release
+
+Before publishing `@dfsync/client`, run the standard test suite and the pack smoke checks.
+
+### 1. Run the regular checks
+
+```bash
+pnpm test
+```
+
+### 2. Verify the published package shape
+
+These checks build the package, create a tarball with pnpm pack, install that tarball into isolated smoke projects, and verify that the package works as expected.
+
+```bash
+pnpm smoke:pack
+```
+
+This command runs:
+
+- `pnpm smoke:pack:esm` — verifies ESM import from the packed tarball
+- `pnpm smoke:pack:cjs` — verifies CommonJS `require()` from the packed tarball
+- `pnpm smoke:pack:types` — verifies TypeScript types from the packed tarball
+
+### Why this matters
+
+Examples in the monorepo validate local workspace usage, but the pack smoke tests validate the actual publish artifact that users install from npm. This helps catch issues with:
+
+- `dist` output
+- `exports`
+- CommonJS / ESM entry points
+- published type definitions

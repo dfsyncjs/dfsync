@@ -1,0 +1,10 @@
+{
+  "name": "pack-node-cjs-smoke",
+  "private": true,
+  "scripts": {
+    "test": "node index.cjs"
+  },
+  "dependencies": {
+    "@dfsync/client": "file:../../.tmp/pack-node-cjs/dfsync-client-0.2.0.tgz"
+  }
+}
