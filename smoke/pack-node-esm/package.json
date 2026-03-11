@@ -1,0 +1,11 @@
+{
+  "name": "pack-node-esm-smoke",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node index.mjs"
+  },
+  "dependencies": {
+    "@dfsync/client": "file:../../.tmp/pack-node-esm/dfsync-client-0.2.0.tgz"
+  }
+}

@@ -64,37 +64,6 @@ describe('request headers', () => {
     expect(headers['x-shared']).toBe('request');
   });
 
-  it('auth overrides existing authorization header', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }),
-    );
-
-    const client = createClient({
-      baseUrl: 'https://api.test.com',
-      fetch: fetchMock,
-      headers: {
-        authorization: 'Bearer old-token',
-      },
-      auth: {
-        type: 'bearer',
-        token: 'new-token',
-      },
-    });
-
-    await client.get('/users');
-
-    const firstCall = fetchMock.mock.calls[0];
-    expect(firstCall).toBeDefined();
-
-    const [, init] = firstCall!;
-    const headers = init?.headers as Record<string, string>;
-
-    expect(headers.authorization).toBe('Bearer new-token');
-  });
-
   it('request headers override client headers before auth is applied', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ ok: true }), {

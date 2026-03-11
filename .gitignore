@@ -140,3 +140,7 @@ vite.config.ts.timestamp-*
 
 .vitest
 .DS_Store
+
+.tmp/
+smoke/**/node_modules/
+smoke/**/package-lock.json
