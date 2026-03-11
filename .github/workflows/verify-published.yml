@@ -1,0 +1,43 @@
+name: Verify Published Package
+
+on:
+  workflow_run:
+    workflows: ['Release']
+    types:
+      - completed
+
+jobs:
+  verify-published:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Wait for npm package availability
+        run: node -e "setTimeout(() => process.exit(0), 60000)"
+
+      - name: Resolve latest published version
+        id: pkg
+        run: echo "version=$(npm view @dfsync/client version)" >> $GITHUB_OUTPUT
+
+      - name: Verify CommonJS import from npm
+        run: |
+          mkdir verify-cjs
+          cd verify-cjs
+          npm init -y
+          npm install @dfsync/client@${{ steps.pkg.outputs.version }}
+          node -e "const { createClient } = require('@dfsync/client'); if (typeof createClient !== 'function') throw new Error('Expected createClient to be a function'); console.log('CJS import OK')"
+
+      - name: Verify ESM import from npm
+        run: |
+          mkdir verify-esm
+          cd verify-esm
+          npm init -y
+          npm pkg set type=module
+          npm install @dfsync/client@${{ steps.pkg.outputs.version }}
+          node -e "import('@dfsync/client').then((m) => { if (typeof m.createClient !== 'function') throw new Error('Expected createClient to be a function'); console.log('ESM import OK'); }).catch((err) => { console.error(err); process.exit(1); })"
