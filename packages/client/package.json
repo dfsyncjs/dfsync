@@ -45,6 +45,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "prepack": "pnpm run build",
     "clean": "rm -rf dist coverage",
     "test": "vitest run",
     "test:watch": "vitest",
