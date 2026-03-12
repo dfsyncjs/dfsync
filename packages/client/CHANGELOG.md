@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.2.2
+
+### Patch Changes
+
+- [#28](https://github.com/dfsyncjs/dfsync/pull/28) [`ebc3558`](https://github.com/dfsyncjs/dfsync/commit/ebc355817c49b7c7a3859703cbe3ecca1e884407) Thanks [@romanindev](https://github.com/romanindev)! - update LICENSE url
+
 ## 0.2.1
 
 ### Patch Changes
