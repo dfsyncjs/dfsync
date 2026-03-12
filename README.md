@@ -1,6 +1,9 @@
 # dfsync
 
-Reliable HTTP communication toolkit for service-to-service communication.
+[![CI](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml/badge.svg)](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/dfsyncjs/dfsync/blob/main/LICENSE)
+
+Reliable HTTP toolkit for service-to-service communication.
 
 `dfsync` provides a set of lightweight tools for building reliable communication between backend services, microservices and integrations.
 
@@ -8,25 +11,23 @@ The project focuses on predictable networking behavior, consistent error handlin
 
 ---
 
-## Requirements:
+## Why dfsync?
 
-- Node >= 20
-- pnpm >= 10
+Most HTTP clients are designed for browser or general use.
 
-Setup:
-
-```bash
-corepack enable
-pnpm install
-```
+dfsync focuses specifically on **service-to-service communication** and provides predictable networking behavior for backend systems.
 
 ## Packages
+
+| Package        | Description                                      |
+| -------------- | ------------------------------------------------ |
+| @dfsync/client | HTTP client for service-to-service communication |
 
 ### `@dfsync/client`
 
 A lightweight HTTP client designed for service-to-service communication.
 
-Main features:
+#### Main features:
 
 - typed responses
 - request timeout support
@@ -34,6 +35,17 @@ Main features:
 - consistent error handling
 - auth support: bearer, API key, custom
 - lifecycle hooks: beforeRequest, afterResponse, onError
+
+#### Built for modern backend systems
+
+**dfsync** is designed for reliable HTTP communication in:
+
+- microservices
+- internal APIs
+- integration services
+- background workers
+
+---
 
 Install:
 
