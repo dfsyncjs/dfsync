@@ -76,6 +76,13 @@ Home page:
 
 This repository uses a **pnpm monorepo**.
 
+Setup:
+
+```bash
+corepack enable
+pnpm install
+```
+
 ```
 packages/
   client/        main dfsync HTTP client package
