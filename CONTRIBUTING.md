@@ -57,11 +57,22 @@ packages/client
 
 # Local Development
 
+## Requirements:
+
+- Node >= 20
+- pnpm >= 10
+
 Clone the repository:
 
 ```bash
 git clone https://github.com/dfsyncjs/dfsync.git
 cd dfsync
+```
+
+Setup:
+
+```bash
+corepack enable
 ```
 
 Install dependencies:
