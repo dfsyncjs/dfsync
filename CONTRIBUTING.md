@@ -73,6 +73,7 @@ Setup:
 
 ```bash
 corepack enable
+pnpm install
 ```
 
 Install dependencies:

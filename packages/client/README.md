@@ -1,9 +1,8 @@
 # @dfsync/client
 
 [![npm version](https://img.shields.io/npm/v/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
-![TypeScript](https://img.shields.io/badge/TypeScript-ready-blue)
-[![npm downloads](https://img.shields.io/npm/dm/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/dfsyncjs/dfsync/blob/main/LICENSE)
+[![npm downloads](https://img.shields.io/npm/dw/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 Reliable service-to-service HTTP communication for Node.js and TypeScript.
 
