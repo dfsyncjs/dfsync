@@ -26,7 +26,7 @@ pnpm install
 
 A lightweight HTTP client designed for service-to-service communication.
 
-Features:
+Main features:
 
 - typed responses
 - request timeout support
@@ -54,7 +54,7 @@ const client = createClient({
 const users = await client.get('/users');
 ```
 
-View on npm:
+NPM:
 [https://www.npmjs.com/package/@dfsync/client](https://www.npmjs.com/package/@dfsync/client)
 
 Home page:
@@ -62,60 +62,15 @@ Home page:
 
 ## Project Structure
 
-```bash
+This repository uses a **pnpm monorepo**.
+
+```
 packages/
-  client/      HTTP client implementation
+  client/        main dfsync HTTP client package
+
+examples/
+  node-basic/    basic usage example
+
+smoke/
+  */             smoke tests verifying published packages
 ```
-
-## Development
-
-Install dependencies:
-
-```bash
-pnpm install
-```
-
-Run tests:
-
-```bash
-pnpm test
-```
-
-Build packages:
-
-```bash
-pnpm build
-```
-
-## How to verify the package before release
-
-Before publishing `@dfsync/client`, run the standard test suite and the pack smoke checks.
-
-### 1. Run the regular checks
-
-```bash
-pnpm test
-```
-
-### 2. Verify the published package shape
-
-These checks build the package, create a tarball with pnpm pack, install that tarball into isolated smoke projects, and verify that the package works as expected.
-
-```bash
-pnpm smoke:pack
-```
-
-This command runs:
-
-- `pnpm smoke:pack:esm` — verifies ESM import from the packed tarball
-- `pnpm smoke:pack:cjs` — verifies CommonJS `require()` from the packed tarball
-- `pnpm smoke:pack:types` — verifies TypeScript types from the packed tarball
-
-### Why this matters
-
-Examples in the monorepo validate local workspace usage, but the pack smoke tests validate the actual publish artifact that users install from npm. This helps catch issues with:
-
-- `dist` output
-- `exports`
-- CommonJS / ESM entry points
-- published type definitions
