@@ -3,7 +3,7 @@
 [![CI](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml/badge.svg)](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/dfsyncjs/dfsync/blob/main/LICENSE)
 
-Reliable HTTP toolkit for service-to-service communication.
+Reliable toolkit for service-to-service communication.
 
 `dfsync` provides a set of lightweight tools for building reliable communication between backend services, microservices and integrations.
 
@@ -27,14 +27,26 @@ dfsync focuses specifically on **service-to-service communication** and provides
 
 A lightweight HTTP client designed for service-to-service communication.
 
+[![npm version](https://img.shields.io/npm/v/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
+[![npm downloads](https://img.shields.io/npm/dw/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
+
+NPM:
+[https://www.npmjs.com/package/@dfsync/client](https://www.npmjs.com/package/@dfsync/client)
+
+Home page:
+[https://dfsyncjs.github.io](https://dfsyncjs.github.io)
+
+Full documentation:
+[https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
+
 #### Main features:
 
 - typed responses
 - request timeout support
 - automatic JSON parsing
 - consistent error handling
-- auth support: bearer, API key, custom
-- lifecycle hooks: beforeRequest, afterResponse, onError
+- auth support: `bearer`, `API key`, custom
+- lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
 
 #### Built for modern backend systems
 
@@ -65,12 +77,6 @@ const client = createClient({
 
 const users = await client.get('/users');
 ```
-
-NPM:
-[https://www.npmjs.com/package/@dfsync/client](https://www.npmjs.com/package/@dfsync/client)
-
-Home page:
-[https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
 ## Project Structure
 
