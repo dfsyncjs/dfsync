@@ -7,7 +7,7 @@ export { TimeoutError } from './errors/timeout-error';
 
 export type { AuthConfig } from './types/auth';
 export type { Client } from './types/client';
-export type { ClientConfig } from './types/config';
+export type { ClientConfig, RetryConfig, RetryCondition, RetryBackoff } from './types/config';
 export type {
   AfterResponseContext,
   BeforeRequestContext,
