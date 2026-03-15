@@ -29,12 +29,6 @@ import { createClient } from '@dfsync/client';
 const client = createClient({
   baseUrl: 'https://api.example.com',
   timeout: 5000,
-  hooks: {
-    afterResponse: ({ response, data }) => {
-      console.log('status:', response.status);
-      console.log('data:', data);
-    },
-  },
 });
 
 const users = await client.get('/users');
@@ -48,6 +42,7 @@ const users = await client.get('/users');
 - consistent error handling
 - auth support: bearer, API key, custom
 - lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
+- retry policies
 
 ## Roadmap
 
@@ -55,6 +50,5 @@ The goal of dfsync is to become a reliable toolkit for service-to-service commun
 
 Planned next steps:
 
-- Retry policies
 - Tracing support
 - Extended hooks and observability features

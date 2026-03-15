@@ -47,6 +47,7 @@ Full documentation:
 - consistent error handling
 - auth support: `bearer`, `API key`, custom
 - lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
+- retry policies
 
 #### Built for modern backend systems
 

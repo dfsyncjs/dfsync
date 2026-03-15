@@ -6,7 +6,8 @@
     "example:basic-get": "tsx basic-get.ts",
     "example:bearer-auth": "tsx bearer-auth.ts",
     "example:hooks": "tsx hooks.ts",
-    "example:custom-auth": "tsx custom-auth.ts"
+    "example:custom-auth": "tsx custom-auth.ts",
+    "example:retry": "tsx retry.ts"
   },
   "dependencies": {
     "@dfsync/client": "workspace:*"
