@@ -1,6 +1,6 @@
 # @dfsync/client
 
-Reliable service-to-service HTTP communication for Node.js and TypeScript.
+A lightweight and reliable HTTP client designed for service-to-service communication for Node.js and TypeScript.
 
 Designed for backend services, microservices and internal APIs where consistent and reliable HTTP communication between services is required.
 
