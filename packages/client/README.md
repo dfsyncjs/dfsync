@@ -29,10 +29,6 @@ import { createClient } from '@dfsync/client';
 const client = createClient({
   baseUrl: 'https://api.example.com',
   timeout: 5000,
-  auth: {
-    type: 'bearer',
-    token: process.env.API_TOKEN!,
-  },
   hooks: {
     afterResponse: ({ response, data }) => {
       console.log('status:', response.status);
@@ -51,7 +47,7 @@ const users = await client.get('/users');
 - automatic JSON parsing
 - consistent error handling
 - auth support: bearer, API key, custom
-- lifecycle hooks: beforeRequest, afterResponse, onError
+- lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
 
 ## Roadmap
 
