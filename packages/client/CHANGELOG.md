@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.3.1
+
+### Patch Changes
+
+- [#36](https://github.com/dfsyncjs/dfsync/pull/36) [`78b85d8`](https://github.com/dfsyncjs/dfsync/commit/78b85d8d64980410c495eb7168a1064f25acc3e4) Thanks [@romanindev](https://github.com/romanindev)! - small API improvement
+
 ## 0.3.0
 
 ### Minor Changes
