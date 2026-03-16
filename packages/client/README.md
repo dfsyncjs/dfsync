@@ -27,7 +27,7 @@ import { createClient } from '@dfsync/client';
 
 const client = createClient({
   baseUrl: 'https://api.example.com',
-  timeout: 5000,
+  retry: { attempts: 3 },
 });
 
 const users = await client.get('/users');
