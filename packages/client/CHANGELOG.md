@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.3.0
+
+### Minor Changes
+
+- [#34](https://github.com/dfsyncjs/dfsync/pull/34) [`f3bd2de`](https://github.com/dfsyncjs/dfsync/commit/f3bd2de26b71535064becafd6a6b891fb15a4038) Thanks [@romanindev](https://github.com/romanindev)! - add retry support
+
 ## 0.2.2
 
 ### Patch Changes
