@@ -1,9 +1,10 @@
 # dfsync
 
 [![CI](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml/badge.svg)](https://github.com/dfsyncjs/dfsync/actions/workflows/ci.yml)
+[![github stars](https://img.shields.io/github/stars/dfsyncjs/dfsync)](https://github.com/dfsyncjs/dfsync)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/dfsyncjs/dfsync/blob/main/LICENSE)
 
-Reliable toolkit for service-to-service communication.
+Open-source toolkit for reliable service-to-service communication.
 
 `dfsync` provides a set of lightweight tools for building reliable communication between backend services, microservices and integrations.
 
@@ -13,7 +14,7 @@ The project focuses on predictable networking behavior, consistent error handlin
 
 ## Why dfsync?
 
-Most HTTP clients are designed for browser or general use.
+Most clients are designed for browser or general use.
 
 dfsync focuses specifically on **service-to-service communication** and provides predictable networking behavior for backend systems.
 
@@ -73,7 +74,7 @@ import { createClient } from '@dfsync/client';
 
 const client = createClient({
   baseUrl: 'https://api.example.com',
-  timeout: 5000,
+  retry: { attempts: 3 },
 });
 
 const users = await client.get('/users');
