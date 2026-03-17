@@ -33,7 +33,7 @@ const client = createClient({
 const users = await client.get('/users');
 ```
 
-## Features
+## Main features
 
 - typed responses
 - request timeout support
