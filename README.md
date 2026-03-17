@@ -101,3 +101,8 @@ examples/
 smoke/
   */             smoke tests verifying published packages
 ```
+
+## Roadmap
+
+See the project roadmap:  
+https://github.com/dfsyncjs/dfsync/blob/main/ROADMAP.md
