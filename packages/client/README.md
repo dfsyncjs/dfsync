@@ -59,9 +59,5 @@ A request in `@dfsync/client` follows this flow:
 
 ## Roadmap
 
-The goal of dfsync is to become a reliable toolkit for service-to-service communication.
-
-Planned next steps:
-
-- Tracing support
-- Extended hooks and observability features
+See the project roadmap:  
+https://github.com/dfsyncjs/dfsync/blob/main/ROADMAP.md
