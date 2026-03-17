@@ -1,5 +1,11 @@
 # @dfsync/client
 
+## 0.3.2
+
+### Patch Changes
+
+- [#39](https://github.com/dfsyncjs/dfsync/pull/39) [`43de4e0`](https://github.com/dfsyncjs/dfsync/commit/43de4e05791755a8458e1c4adea044d715c9f611) Thanks [@romanindev](https://github.com/romanindev)! - added roadmap
+
 ## 0.3.1
 
 ### Patch Changes
