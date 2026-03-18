@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "example:basic-get": "tsx basic-get.ts",
+    "example:basic-methods": "tsx basic-methods.ts",
     "example:bearer-auth": "tsx bearer-auth.ts",
     "example:hooks": "tsx hooks.ts",
     "example:custom-auth": "tsx custom-auth.ts",

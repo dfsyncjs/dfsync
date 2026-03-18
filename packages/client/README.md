@@ -5,7 +5,7 @@ A lightweight and reliable HTTP client for service-to-service communication in N
 Designed for backend services, microservices and internal APIs where consistent and reliable HTTP communication between services is required.
 
 [![npm version](https://img.shields.io/npm/v/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
-[![npm downloads](https://img.shields.io/npm/dm/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
+[![npm downloads](https://img.shields.io/npm/dw/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 Home page: [https://dfsyncjs.github.io](https://dfsyncjs.github.io)
