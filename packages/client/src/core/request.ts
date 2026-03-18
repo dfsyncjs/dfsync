@@ -46,21 +46,21 @@ export async function request<T>(
 
     await applyAuth({
       auth: clientConfig.auth,
-      request: requestConfig,
-      url,
-      headers,
+      request: execution.request,
+      url: execution.url,
+      headers: execution.headers,
     });
 
     await runHooks(clientConfig.hooks?.beforeRequest, createBeforeRequestContext(execution));
 
     let body: BodyInit | undefined;
 
-    if (requestConfig.body !== undefined) {
-      if (typeof requestConfig.body === 'string') {
-        body = requestConfig.body;
+    if (execution.request.body !== undefined) {
+      if (typeof execution.request.body === 'string') {
+        body = execution.request.body;
       } else {
-        headers['content-type'] = headers['content-type'] ?? 'application/json';
-        body = JSON.stringify(requestConfig.body);
+        execution.headers['content-type'] = execution.headers['content-type'] ?? 'application/json';
+        body = JSON.stringify(execution.request.body);
       }
     }
 
@@ -71,8 +71,8 @@ export async function request<T>(
 
     try {
       const init: RequestInit = {
-        method: requestConfig.method,
-        headers,
+        method: execution.request.method,
+        headers: execution.headers,
         signal: requestController.signal,
       };
 
@@ -80,7 +80,7 @@ export async function request<T>(
         init.body = body;
       }
 
-      response = await fetchImpl(url.toString(), init);
+      response = await fetchImpl(execution.url.toString(), init);
       data = await parseResponse(response);
 
       if (!response.ok) {
@@ -91,8 +91,8 @@ export async function request<T>(
       lastError = error;
 
       const canRetry = shouldRetry({
-        attempt,
-        method: requestConfig.method,
+        attempt: execution.attempt,
+        method: execution.request.method,
         retry,
         error,
       });
@@ -104,7 +104,7 @@ export async function request<T>(
       }
 
       const delay = getRetryDelay({
-        attempt: attempt + 1,
+        attempt: execution.attempt + 1,
         backoff: retry.backoff,
         baseDelayMs: retry.baseDelayMs,
       });
