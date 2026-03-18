@@ -1,40 +1,33 @@
 import type { AfterResponseContext, BeforeRequestContext, ErrorContext } from '../types/hooks';
-import type { HeadersMap } from '../types/common';
-import type { RequestConfig } from '../types/request';
+import type { ExecutionContext } from './execution-context';
 
-type HookContextBase = {
-  request: RequestConfig;
-  url: URL;
-  headers: HeadersMap;
-};
-
-export function createBeforeRequestContext(base: HookContextBase): BeforeRequestContext {
+export function createBeforeRequestContext(execution: ExecutionContext): BeforeRequestContext {
   return {
-    request: base.request,
-    url: base.url,
-    headers: base.headers,
+    request: execution.request,
+    url: execution.url,
+    headers: execution.headers,
   };
 }
 
 export function createAfterResponseContext<T>(
-  base: HookContextBase,
+  execution: ExecutionContext,
   response: Response,
   data: T,
 ): AfterResponseContext<T> {
   return {
-    request: base.request,
-    url: base.url,
-    headers: base.headers,
+    request: execution.request,
+    url: execution.url,
+    headers: execution.headers,
     response,
     data,
   };
 }
 
-export function createErrorContext(base: HookContextBase, error: Error): ErrorContext {
+export function createErrorContext(execution: ExecutionContext, error: Error): ErrorContext {
   return {
-    request: base.request,
-    url: base.url,
-    headers: base.headers,
+    request: execution.request,
+    url: execution.url,
+    headers: execution.headers,
     error,
   };
 }

@@ -5,6 +5,7 @@ import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
+import { createExecutionContext } from './execution-context';
 import {
   createAfterResponseContext,
   createBeforeRequestContext,
@@ -35,6 +36,13 @@ export async function request<T>(
       ...(requestConfig.headers ?? {}),
     };
 
+    const execution = createExecutionContext({
+      request: requestConfig,
+      url,
+      headers,
+      attempt,
+    });
+
     await applyAuth({
       auth: clientConfig.auth,
       request: requestConfig,
@@ -42,14 +50,7 @@ export async function request<T>(
       headers,
     });
 
-    await runHooks(
-      clientConfig.hooks?.beforeRequest,
-      createBeforeRequestContext({
-        request: requestConfig,
-        url,
-        headers,
-      }),
-    );
+    await runHooks(clientConfig.hooks?.beforeRequest, createBeforeRequestContext(execution));
 
     let body: BodyInit | undefined;
 
@@ -99,17 +100,7 @@ export async function request<T>(
       });
 
       if (!canRetry) {
-        await runHooksSafely(
-          clientConfig.hooks?.onError,
-          createErrorContext(
-            {
-              request: requestConfig,
-              url,
-              headers,
-            },
-            error,
-          ),
-        );
+        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
 
         throw error;
       }
@@ -128,15 +119,7 @@ export async function request<T>(
 
     await runHooks(
       clientConfig.hooks?.afterResponse,
-      createAfterResponseContext(
-        {
-          request: requestConfig,
-          url,
-          headers,
-        },
-        response,
-        data,
-      ),
+      createAfterResponseContext(execution, response, data),
     );
 
     return data as T;
