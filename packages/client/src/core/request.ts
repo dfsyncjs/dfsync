@@ -5,6 +5,7 @@ import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
+import { applyRequestMetadata } from './apply-request-metadata';
 import { createExecutionContext } from './execution-context';
 import { createRequestController } from './create-request-controller';
 import {
@@ -43,6 +44,8 @@ export async function request<T>(
       headers,
       attempt,
     });
+
+    applyRequestMetadata(execution);
 
     await applyAuth({
       auth: clientConfig.auth,

@@ -6,6 +6,10 @@ export type ExecutionContext = {
   url: URL;
   headers: HeadersMap;
   attempt: number;
+
+  // future lifecycle fields
+  requestId: string;
+  startedAt: number;
 };
 
 type CreateExecutionContextParams = {
@@ -15,11 +19,18 @@ type CreateExecutionContextParams = {
   attempt: number;
 };
 
+function generateRequestId(): string {
+  return Math.random().toString(36).slice(2);
+}
+
 export function createExecutionContext(params: CreateExecutionContextParams): ExecutionContext {
   return {
     request: params.request,
     url: params.url,
     headers: params.headers,
     attempt: params.attempt,
+
+    requestId: generateRequestId(),
+    startedAt: Date.now(),
   };
 }
