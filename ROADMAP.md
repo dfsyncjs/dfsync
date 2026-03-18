@@ -6,7 +6,17 @@ This document outlines the planned direction for **dfsync** and its packages.
 
 A lightweight HTTP client for reliable service-to-service communication.
 
-### 0.4.x — Request lifecycle
+### 0.4.x - 0.5.x — API completeness
+
+Focus: method surface and developer experience.
+
+Delivered / planned improvements:
+
+- PATCH method support
+- improved method typing
+- better examples and documentation
+
+### 0.6.x — Request lifecycle
 
 **Focus**: request control and lifecycle management.
 
@@ -19,7 +29,7 @@ Planned features:
 
 ---
 
-### 0.5.x — Observability
+### 0.7.x — Observability
 
 **Focus**: logging, monitoring, and request insights.
 
@@ -32,7 +42,7 @@ Planned features:
 
 ---
 
-### 0.6.x — Integration safety
+### 0.8.x — Integration safety
 
 **Focus**: safer and more predictable integrations.
 
