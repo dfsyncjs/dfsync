@@ -2,11 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createClient } from '../../src/core/create-client';
 import { TimeoutError } from '../../src/errors/timeout-error';
+import { getFirstFetchInit } from '../testUtils';
 
 describe('client abort signal', () => {
   it('throws TimeoutError when request is aborted via external signal', async () => {
-    const fetchMock: typeof fetch = vi.fn((_input, init) => {
-      return new Promise((_resolve, reject) => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      return new Promise<Response>((_resolve, reject) => {
         const rejectWithAbortError = () => {
           const abortError = new Error('The operation was aborted');
           abortError.name = 'AbortError';
@@ -66,7 +67,7 @@ describe('client abort signal', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    const [, init] = fetchMock.mock.calls[0]!;
+    const init = getFirstFetchInit(fetchMock);
     expect(init?.signal).toBeDefined();
   });
 });
