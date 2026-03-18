@@ -1,10 +1,15 @@
 import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
 import type { HeadersMap } from '../types/common';
-import type { ClientConfig, RetryConfig } from '../types/config';
+import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
+import {
+  createAfterResponseContext,
+  createBeforeRequestContext,
+  createErrorContext,
+} from './hook-context';
 import { getRetryDelay } from './get-retry-delay';
 import { normalizeError } from './normalize-error';
 import { parseResponse } from './parse-response';
@@ -37,11 +42,14 @@ export async function request<T>(
       headers,
     });
 
-    await runHooks(clientConfig.hooks?.beforeRequest, {
-      request: requestConfig,
-      url,
-      headers,
-    });
+    await runHooks(
+      clientConfig.hooks?.beforeRequest,
+      createBeforeRequestContext({
+        request: requestConfig,
+        url,
+        headers,
+      }),
+    );
 
     let body: BodyInit | undefined;
 
@@ -91,12 +99,17 @@ export async function request<T>(
       });
 
       if (!canRetry) {
-        await runHooksSafely(clientConfig.hooks?.onError, {
-          request: requestConfig,
-          url,
-          headers,
-          error,
-        });
+        await runHooksSafely(
+          clientConfig.hooks?.onError,
+          createErrorContext(
+            {
+              request: requestConfig,
+              url,
+              headers,
+            },
+            error,
+          ),
+        );
 
         throw error;
       }
@@ -113,13 +126,18 @@ export async function request<T>(
       clearTimeout(timeoutId);
     }
 
-    await runHooks(clientConfig.hooks?.afterResponse, {
-      request: requestConfig,
-      url,
-      headers,
-      response,
-      data,
-    });
+    await runHooks(
+      clientConfig.hooks?.afterResponse,
+      createAfterResponseContext(
+        {
+          request: requestConfig,
+          url,
+          headers,
+        },
+        response,
+        data,
+      ),
+    );
 
     return data as T;
   }
