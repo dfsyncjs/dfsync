@@ -3,17 +3,42 @@ export type RequestController = {
   cleanup: () => void;
 };
 
-export function createRequestController(timeout: number): RequestController {
-  const controller = new AbortController();
+type CreateRequestControllerParams = {
+  timeout: number;
+  signal?: AbortSignal | undefined;
+};
+
+export function createRequestController(params: CreateRequestControllerParams): RequestController {
+  const timeoutController = new AbortController();
 
   const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout);
+    timeoutController.abort();
+  }, params.timeout);
+
+  if (!params.signal) {
+    return {
+      signal: timeoutController.signal,
+      cleanup: () => {
+        clearTimeout(timeoutId);
+      },
+    };
+  }
+
+  if (params.signal.aborted) {
+    timeoutController.abort();
+  }
+
+  const abortOnExternalSignal = () => {
+    timeoutController.abort();
+  };
+
+  params.signal.addEventListener('abort', abortOnExternalSignal, { once: true });
 
   return {
-    signal: controller.signal,
+    signal: timeoutController.signal,
     cleanup: () => {
       clearTimeout(timeoutId);
+      params.signal?.removeEventListener('abort', abortOnExternalSignal);
     },
   };
 }

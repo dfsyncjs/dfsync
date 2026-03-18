@@ -64,7 +64,10 @@ export async function request<T>(
       }
     }
 
-    const requestController = createRequestController(timeout);
+    const requestController = createRequestController({
+      timeout,
+      signal: execution.request.signal,
+    });
 
     let response: Response;
     let data: unknown;

@@ -1,4 +1,4 @@
-import type { QueryParams, HeadersMap } from './common';
+import type { HeadersMap, QueryParams } from './common';
 import type { RetryConfig } from './config';
 
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -11,6 +11,7 @@ export type RequestConfig = {
   headers?: HeadersMap;
   timeout?: number;
   retry?: RetryConfig;
+  signal?: AbortSignal;
 };
 
 export type RequestOptions = Omit<RequestConfig, 'method' | 'path' | 'body'>;
