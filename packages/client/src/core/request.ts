@@ -6,6 +6,7 @@ import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
 import { createExecutionContext } from './execution-context';
+import { createRequestController } from './create-request-controller';
 import {
   createAfterResponseContext,
   createBeforeRequestContext,
@@ -63,10 +64,7 @@ export async function request<T>(
       }
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, timeout);
+    const requestController = createRequestController(timeout);
 
     let response: Response;
     let data: unknown;
@@ -75,7 +73,7 @@ export async function request<T>(
       const init: RequestInit = {
         method: requestConfig.method,
         headers,
-        signal: controller.signal,
+        signal: requestController.signal,
       };
 
       if (body !== undefined) {
@@ -114,7 +112,7 @@ export async function request<T>(
       await sleep(delay);
       continue;
     } finally {
-      clearTimeout(timeoutId);
+      requestController.cleanup();
     }
 
     await runHooks(
