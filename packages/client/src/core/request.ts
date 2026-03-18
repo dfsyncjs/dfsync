@@ -1,61 +1,31 @@
 import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
-import { TimeoutError } from '../errors/timeout-error';
 import type { HeadersMap } from '../types/common';
-import type { ClientConfig, RetryConfig } from '../types/config';
+import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
+import { applyRequestMetadata } from './apply-request-metadata';
+import { createExecutionContext } from './execution-context';
+import { createRequestController } from './create-request-controller';
+import {
+  createAfterResponseContext,
+  createBeforeRequestContext,
+  createErrorContext,
+} from './hook-context';
 import { getRetryDelay } from './get-retry-delay';
+import { normalizeError } from './normalize-error';
 import { parseResponse } from './parse-response';
+import { resolveRuntimeConfig } from './resolve-runtime-config';
 import { runHooks, runHooksSafely } from './run-hooks';
 import { shouldRetry } from './should-retry';
-
-const DEFAULT_TIMEOUT = 5000;
-
-const DEFAULT_RETRY: Required<RetryConfig> = {
-  attempts: 0,
-  backoff: 'exponential',
-  baseDelayMs: 300,
-  retryOn: ['network-error', '5xx'],
-  retryMethods: ['GET', 'PUT', 'DELETE'],
-};
-
-function normalizeError(error: unknown, timeout: number): Error {
-  if (error instanceof HttpError) {
-    return error;
-  }
-
-  if (error instanceof Error && error.name === 'AbortError') {
-    return new TimeoutError(timeout, error);
-  }
-
-  return new NetworkError('Network request failed', error);
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+import { sleep } from './sleep';
 
 export async function request<T>(
   clientConfig: ClientConfig,
   requestConfig: RequestConfig,
 ): Promise<T> {
-  const fetchImpl = clientConfig.fetch ?? globalThis.fetch;
-
-  if (!fetchImpl) {
-    throw new Error('No fetch implementation available');
-  }
-
-  const timeout = requestConfig.timeout ?? clientConfig.timeout ?? DEFAULT_TIMEOUT;
-
-  const retry: Required<RetryConfig> = {
-    ...DEFAULT_RETRY,
-    ...(clientConfig.retry ?? {}),
-    ...(requestConfig.retry ?? {}),
-  };
+  const { fetchImpl, timeout, retry } = resolveRuntimeConfig(clientConfig, requestConfig);
 
   const url = new URL(buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query));
 
@@ -68,50 +38,55 @@ export async function request<T>(
       ...(requestConfig.headers ?? {}),
     };
 
-    await applyAuth({
-      auth: clientConfig.auth,
+    const execution = createExecutionContext({
       request: requestConfig,
       url,
       headers,
+      attempt,
     });
 
-    await runHooks(clientConfig.hooks?.beforeRequest, {
-      request: requestConfig,
-      url,
-      headers,
+    applyRequestMetadata(execution);
+
+    await applyAuth({
+      auth: clientConfig.auth,
+      request: execution.request,
+      url: execution.url,
+      headers: execution.headers,
     });
+
+    await runHooks(clientConfig.hooks?.beforeRequest, createBeforeRequestContext(execution));
 
     let body: BodyInit | undefined;
 
-    if (requestConfig.body !== undefined) {
-      if (typeof requestConfig.body === 'string') {
-        body = requestConfig.body;
+    if (execution.request.body !== undefined) {
+      if (typeof execution.request.body === 'string') {
+        body = execution.request.body;
       } else {
-        headers['content-type'] = headers['content-type'] ?? 'application/json';
-        body = JSON.stringify(requestConfig.body);
+        execution.headers['content-type'] = execution.headers['content-type'] ?? 'application/json';
+        body = JSON.stringify(execution.request.body);
       }
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, timeout);
+    const requestController = createRequestController({
+      timeout,
+      signal: execution.request.signal,
+    });
 
     let response: Response;
     let data: unknown;
 
     try {
       const init: RequestInit = {
-        method: requestConfig.method,
-        headers,
-        signal: controller.signal,
+        method: execution.request.method,
+        headers: execution.headers,
+        signal: requestController.signal,
       };
 
       if (body !== undefined) {
         init.body = body;
       }
 
-      response = await fetchImpl(url.toString(), init);
+      response = await fetchImpl(execution.url.toString(), init);
       data = await parseResponse(response);
 
       if (!response.ok) {
@@ -122,25 +97,20 @@ export async function request<T>(
       lastError = error;
 
       const canRetry = shouldRetry({
-        attempt,
-        method: requestConfig.method,
+        attempt: execution.attempt,
+        method: execution.request.method,
         retry,
         error,
       });
 
       if (!canRetry) {
-        await runHooksSafely(clientConfig.hooks?.onError, {
-          request: requestConfig,
-          url,
-          headers,
-          error,
-        });
+        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
 
         throw error;
       }
 
       const delay = getRetryDelay({
-        attempt: attempt + 1,
+        attempt: execution.attempt + 1,
         backoff: retry.backoff,
         baseDelayMs: retry.baseDelayMs,
       });
@@ -148,16 +118,13 @@ export async function request<T>(
       await sleep(delay);
       continue;
     } finally {
-      clearTimeout(timeoutId);
+      requestController.cleanup();
     }
 
-    await runHooks(clientConfig.hooks?.afterResponse, {
-      request: requestConfig,
-      url,
-      headers,
-      response,
-      data,
-    });
+    await runHooks(
+      clientConfig.hooks?.afterResponse,
+      createAfterResponseContext(execution, response, data),
+    );
 
     return data as T;
   }

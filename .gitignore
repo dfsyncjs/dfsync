@@ -140,6 +140,7 @@ vite.config.ts.timestamp-*
 
 .vitest
 .DS_Store
+.idea/
 
 .tmp/
 smoke/**/node_modules/

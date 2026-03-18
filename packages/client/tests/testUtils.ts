@@ -14,3 +14,8 @@ export function getFirstMockCall<TArgs extends unknown[]>(
 
   return firstCall;
 }
+
+export function getFirstFetchInit(mock: Mock): RequestInit {
+  const [, init] = getFirstMockCall<[RequestInfo | URL, RequestInit | undefined]>(mock);
+  return init ?? {};
+}
