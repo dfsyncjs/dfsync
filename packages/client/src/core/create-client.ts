@@ -1,11 +1,11 @@
 import type { Client } from '../types/client';
 import type { ClientConfig } from '../types/config';
-import type { RequestConfig, RequestOptions } from '../types/request';
+import type { RequestConfig, RequestOptionsWithoutBody } from '../types/request';
 import { request } from './request';
 
 export function createClient(config: ClientConfig): Client {
   return {
-    get<T = unknown>(path: string, options?: RequestOptions): Promise<T> {
+    get<T = unknown>(path: string, options?: RequestOptionsWithoutBody): Promise<T> {
       return request<T>(config, {
         ...options,
         method: 'GET',
@@ -13,7 +13,11 @@ export function createClient(config: ClientConfig): Client {
       });
     },
 
-    post<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    post<T = unknown>(
+      path: string,
+      body?: unknown,
+      options?: RequestOptionsWithoutBody,
+    ): Promise<T> {
       return request<T>(config, {
         ...options,
         method: 'POST',
@@ -22,7 +26,11 @@ export function createClient(config: ClientConfig): Client {
       });
     },
 
-    put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    put<T = unknown>(
+      path: string,
+      body?: unknown,
+      options?: RequestOptionsWithoutBody,
+    ): Promise<T> {
       return request<T>(config, {
         ...options,
         method: 'PUT',
@@ -31,7 +39,20 @@ export function createClient(config: ClientConfig): Client {
       });
     },
 
-    delete<T = unknown>(path: string, options?: RequestOptions): Promise<T> {
+    patch<T = unknown>(
+      path: string,
+      body?: unknown,
+      options?: RequestOptionsWithoutBody,
+    ): Promise<T> {
+      return request<T>(config, {
+        ...options,
+        method: 'PATCH',
+        path,
+        body,
+      });
+    },
+
+    delete<T = unknown>(path: string, options?: RequestOptionsWithoutBody): Promise<T> {
       return request<T>(config, {
         ...options,
         method: 'DELETE',
