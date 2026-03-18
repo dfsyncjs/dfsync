@@ -1,5 +1,16 @@
 # @dfsync/client
 
+## 0.4.0
+
+### Minor Changes
+
+- [#41](https://github.com/dfsyncjs/dfsync/pull/41) [`9ff66ee`](https://github.com/dfsyncjs/dfsync/commit/9ff66eea776bf262ffb3eef7ca4439df7878d84b) Thanks [@romanindev](https://github.com/romanindev)! - Minor changes
+  - refactor request lifecycle architecture
+  - introduce execution context
+  - add AbortSignal support (internal + partial public)
+  - extract request metadata and controller helpers
+  - improve testability of core modules
+
 ## 0.3.2
 
 ### Patch Changes
