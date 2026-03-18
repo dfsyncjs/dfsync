@@ -5,14 +5,12 @@ A lightweight and reliable HTTP client for service-to-service communication in N
 Designed for backend services, microservices and internal APIs where consistent and reliable HTTP communication between services is required.
 
 [![npm version](https://img.shields.io/npm/v/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
-[![npm downloads](https://img.shields.io/npm/dm/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
+[![npm downloads](https://img.shields.io/npm/dw/@dfsync/client.svg)](https://www.npmjs.com/package/@dfsync/client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Home page:
-[https://dfsyncjs.github.io](https://dfsyncjs.github.io)
+Home page: [https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
-Full documentation:
-[https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
+Full documentation: [https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
 
 ## Install
 
@@ -31,7 +29,34 @@ const client = createClient({
 });
 
 const users = await client.get('/users');
+
+const createdUser = await client.post('/users', {
+  name: 'John',
+});
+
+const updatedUser = await client.patch('/users/1', {
+  name: 'Jane',
+});
 ```
+
+## HTTP methods
+
+`@dfsync/client` provides a small and predictable method surface:
+
+```text
+client.get(path, options?)
+client.delete(path, options?)
+
+client.post(path, body?, options?)
+client.put(path, body?, options?)
+client.patch(path, body?, options?)
+
+client.request(config)
+```
+
+`get` and `delete` do not accept `body` in options.
+
+`post`, `put`, and `patch` accept request body as a separate second argument.
 
 ## Main features
 
@@ -41,6 +66,7 @@ const users = await client.get('/users');
 - consistent error handling
 - auth support: bearer, API key, custom
 - lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
+- support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
 - retry policies
 
 ## How requests work
