@@ -1,5 +1,14 @@
 # @dfsync/client
 
+## 0.5.0
+
+### Minor Changes
+
+- [#43](https://github.com/dfsyncjs/dfsync/pull/43) [`5896eb6`](https://github.com/dfsyncjs/dfsync/commit/5896eb63bf3ab18489d5d7fc88dde47d7db179aa) Thanks [@romanindev](https://github.com/romanindev)! - - add support for PATCH HTTP method
+  - introduce client.patch(...) API
+  - improve method typing (body as second argument)
+  - enhance DX for HTTP method usage
+
 ## 0.4.0
 
 ### Minor Changes
