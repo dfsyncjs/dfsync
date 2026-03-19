@@ -10,7 +10,9 @@ A lightweight HTTP client for reliable service-to-service communication.
 
 Focus: method surface and developer experience.
 
-Delivered / planned improvements:
+Status: mostly completed
+
+Delivered:
 
 - PATCH method support
 - improved method typing
@@ -22,9 +24,9 @@ Delivered / planned improvements:
 
 Planned features:
 
-- AbortSignal support for request cancellation
+- AbortSignal support (extended and stabilized)
 - request context object for passing metadata through lifecycle
-- correlation ID support (e.g. `x-request-id`)
+- correlation ID support (`x-request-id` propagation across services)
 - improved hook context with additional execution details
 
 ---
@@ -35,7 +37,7 @@ Planned features:
 
 Planned features:
 
-- request duration tracking
+- request duration tracking (latency)
 - retry metadata (attempt number, delay, etc.)
 - support for `Retry-After` response header
 - retry lifecycle hooks (`onRetry`)
@@ -48,7 +50,7 @@ Planned features:
 
 Planned features:
 
-- response validation (custom or schema-based)
+- response validation (schema-based or custom)
 - idempotency key support for safe retries
 
 ### Notes
