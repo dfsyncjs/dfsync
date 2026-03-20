@@ -183,8 +183,8 @@ describe('request headers', () => {
     const headers = init.headers as Record<string, string | undefined>;
     const requestId = headers['x-request-id'];
 
-    expect(typeof requestId).toBe('string');
     expect(requestId).toBeDefined();
+    expect(typeof requestId).toBe('string');
     expect(requestId!.length).toBeGreaterThan(0);
   });
 });
