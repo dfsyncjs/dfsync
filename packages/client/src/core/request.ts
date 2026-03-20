@@ -93,7 +93,7 @@ export async function request<T>(
         throw new HttpError(response, data);
       }
     } catch (rawError) {
-      const error = normalizeError(rawError, timeout);
+      const error = normalizeError(rawError, timeout, requestController.getAbortReason());
       lastError = error;
 
       const canRetry = shouldRetry({

@@ -21,6 +21,9 @@ describe('client timeout', () => {
     });
 
     await expect(client.get('/slow')).rejects.toBeInstanceOf(TimeoutError);
+    await expect(client.get('/slow')).rejects.toMatchObject({
+      name: 'TimeoutError',
+    });
   });
 
   it('request timeout overrides client timeout', async () => {
@@ -41,5 +44,8 @@ describe('client timeout', () => {
     });
 
     await expect(client.get('/slow', { timeout: 10 })).rejects.toBeInstanceOf(TimeoutError);
+    await expect(client.get('/slow')).rejects.toMatchObject({
+      name: 'TimeoutError',
+    });
   });
 });

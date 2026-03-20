@@ -1,6 +1,9 @@
+export type RequestAbortReason = 'timeout' | 'external';
+
 export type RequestController = {
   signal: AbortSignal;
   cleanup: () => void;
+  getAbortReason: () => RequestAbortReason | undefined;
 };
 
 type CreateRequestControllerParams = {
@@ -11,7 +14,10 @@ type CreateRequestControllerParams = {
 export function createRequestController(params: CreateRequestControllerParams): RequestController {
   const timeoutController = new AbortController();
 
+  let abortReason: RequestAbortReason | undefined;
+
   const timeoutId = setTimeout(() => {
+    abortReason = 'timeout';
     timeoutController.abort();
   }, params.timeout);
 
@@ -21,14 +27,17 @@ export function createRequestController(params: CreateRequestControllerParams): 
       cleanup: () => {
         clearTimeout(timeoutId);
       },
+      getAbortReason: () => abortReason,
     };
   }
 
   if (params.signal.aborted) {
+    abortReason = 'external';
     timeoutController.abort();
   }
 
   const abortOnExternalSignal = () => {
+    abortReason = 'external';
     timeoutController.abort();
   };
 
@@ -40,5 +49,6 @@ export function createRequestController(params: CreateRequestControllerParams): 
       clearTimeout(timeoutId);
       params.signal?.removeEventListener('abort', abortOnExternalSignal);
     },
+    getAbortReason: () => abortReason,
   };
 }
