@@ -1,24 +1,24 @@
 import type { HeadersMap } from './common';
 import type { RequestConfig } from './request';
 
-export type BeforeRequestContext = {
+type LifecycleContextBase = {
   request: RequestConfig;
   url: URL;
   headers: HeadersMap;
+  attempt: number;
+  requestId: string;
+  startedAt: number;
+  signal?: AbortSignal | undefined;
 };
 
-export type AfterResponseContext<T = unknown> = {
-  request: RequestConfig;
-  url: URL;
-  headers: HeadersMap;
+export type BeforeRequestContext = LifecycleContextBase;
+
+export type AfterResponseContext<T = unknown> = LifecycleContextBase & {
   response: Response;
   data: T;
 };
 
-export type ErrorContext = {
-  request: RequestConfig;
-  url: URL;
-  headers: HeadersMap;
+export type ErrorContext = LifecycleContextBase & {
   error: Error;
 };
 
