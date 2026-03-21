@@ -10,7 +10,7 @@ A lightweight HTTP client for reliable service-to-service communication.
 
 Focus: method surface and developer experience.
 
-Status: mostly completed
+Status: completed
 
 Delivered:
 
@@ -22,7 +22,9 @@ Delivered:
 
 **Focus**: request control and lifecycle management.
 
-Planned features:
+Status: completed
+
+Delivered:
 
 - AbortSignal support (extended and stabilized)
 - request context object for passing metadata through lifecycle

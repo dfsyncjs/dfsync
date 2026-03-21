@@ -40,15 +40,23 @@ Home page:
 Full documentation:
 [https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
 
-#### Main features:
+#### Main features
+
+- predictable request lifecycle
+- request ID propagation (`x-request-id`)
+- request cancellation via `AbortSignal`
+- built-in retry with configurable policies
+- lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
+- request timeout support
 
 - typed responses
-- request timeout support
 - automatic JSON parsing
 - consistent error handling
-- auth support: `bearer`, `API key`, custom
-- lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
-- retry policies
+
+- auth support: bearer, API key, custom
+- support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
+
+**@dfsync/client** provides a predictable and controllable HTTP request lifecycle for service-to-service communication.
 
 #### Built for modern backend systems
 
@@ -73,11 +81,13 @@ Example:
 import { createClient } from '@dfsync/client';
 
 const client = createClient({
-  baseUrl: 'https://api.example.com',
+  baseURL: 'https://api.example.com',
   retry: { attempts: 3 },
 });
 
-const users = await client.get('/users');
+const users = await client.get('/users', {
+  requestId: 'req_123',
+});
 ```
 
 ## Project Structure
@@ -104,5 +114,4 @@ smoke/
 
 ## Roadmap
 
-See the project roadmap:  
-https://github.com/dfsyncjs/dfsync/blob/main/ROADMAP.md
+See the [project roadmap](https://github.com/dfsyncjs/dfsync/blob/main/ROADMAP.md)
