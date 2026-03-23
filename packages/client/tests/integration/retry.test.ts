@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createClient } from '../../src/core/create-client';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
+import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 
 describe('client retry', () => {
   it('retries on 503 and succeeds on the next attempt', async () => {
@@ -224,5 +225,43 @@ describe('client retry', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(beforeRequest).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry externally aborted requests', async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      return new Promise<Response>((_resolve, reject) => {
+        const rejectWithAbortError = () => {
+          const abortError = new Error('The operation was aborted');
+          abortError.name = 'AbortError';
+          reject(abortError);
+        };
+
+        if (init?.signal?.aborted) {
+          rejectWithAbortError();
+          return;
+        }
+
+        init?.signal?.addEventListener('abort', rejectWithAbortError, {
+          once: true,
+        });
+      });
+    });
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: { attempts: 2 },
+    });
+
+    const controller = new AbortController();
+
+    const promise = client.get('/users', {
+      signal: controller.signal,
+    });
+
+    controller.abort();
+
+    await expect(promise).rejects.toBeInstanceOf(RequestAbortedError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

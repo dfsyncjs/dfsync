@@ -30,7 +30,7 @@ export function createExecutionContext(params: CreateExecutionContextParams): Ex
     headers: params.headers,
     attempt: params.attempt,
 
-    requestId: generateRequestId(),
+    requestId: params.request.requestId ?? generateRequestId(),
     startedAt: Date.now(),
   };
 }

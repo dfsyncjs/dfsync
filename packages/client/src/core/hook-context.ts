@@ -1,12 +1,22 @@
 import type { AfterResponseContext, BeforeRequestContext, ErrorContext } from '../types/hooks';
 import type { ExecutionContext } from './execution-context';
 
-export function createBeforeRequestContext(execution: ExecutionContext): BeforeRequestContext {
+function createLifecycleContextBase(
+  execution: ExecutionContext,
+): Omit<BeforeRequestContext, never> {
   return {
     request: execution.request,
     url: execution.url,
     headers: execution.headers,
+    attempt: execution.attempt,
+    requestId: execution.requestId,
+    startedAt: execution.startedAt,
+    signal: execution.request.signal,
   };
+}
+
+export function createBeforeRequestContext(execution: ExecutionContext): BeforeRequestContext {
+  return createLifecycleContextBase(execution);
 }
 
 export function createAfterResponseContext<T>(
@@ -15,9 +25,7 @@ export function createAfterResponseContext<T>(
   data: T,
 ): AfterResponseContext<T> {
   return {
-    request: execution.request,
-    url: execution.url,
-    headers: execution.headers,
+    ...createLifecycleContextBase(execution),
     response,
     data,
   };
@@ -25,9 +33,7 @@ export function createAfterResponseContext<T>(
 
 export function createErrorContext(execution: ExecutionContext, error: Error): ErrorContext {
   return {
-    request: execution.request,
-    url: execution.url,
-    headers: execution.headers,
+    ...createLifecycleContextBase(execution),
     error,
   };
 }

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
 import { TimeoutError } from '../../src/errors/timeout-error';
+import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 import { createClient } from '../../src/core/create-client';
 import { getFirstMockCall } from '../testUtils';
 
@@ -319,5 +320,51 @@ describe('request hooks', () => {
     const firstCall = onError.mock.calls[0];
     expect(firstCall).toBeDefined();
     expect(firstCall![0].error).toBeInstanceOf(TimeoutError);
+  });
+
+  it('runs onError for externally aborted requests', async () => {
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      return new Promise<Response>((_resolve, reject) => {
+        const rejectWithAbortError = () => {
+          const abortError = new Error('The operation was aborted');
+          abortError.name = 'AbortError';
+          reject(abortError);
+        };
+
+        if (init?.signal?.aborted) {
+          rejectWithAbortError();
+          return;
+        }
+
+        init?.signal?.addEventListener('abort', rejectWithAbortError, {
+          once: true,
+        });
+      });
+    }) as typeof fetch;
+
+    const onError = vi.fn();
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      timeout: 1000,
+      fetch: fetchMock,
+      hooks: { onError },
+    });
+
+    const controller = new AbortController();
+
+    const promise = client.get('/slow', {
+      signal: controller.signal,
+    });
+
+    controller.abort();
+
+    await expect(promise).rejects.toBeInstanceOf(RequestAbortedError);
+
+    expect(onError).toHaveBeenCalledTimes(1);
+
+    const firstCall = onError.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    expect(firstCall![0].error).toBeInstanceOf(RequestAbortedError);
   });
 });

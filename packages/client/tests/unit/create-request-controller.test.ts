@@ -19,6 +19,7 @@ describe('createRequestController', () => {
     vi.advanceTimersByTime(100);
 
     expect(controller.signal.aborted).toBe(true);
+    expect(controller.getAbortReason()).toBe('timeout');
 
     controller.cleanup();
   });
@@ -35,6 +36,7 @@ describe('createRequestController', () => {
     vi.advanceTimersByTime(100);
 
     expect(controller.signal.aborted).toBe(false);
+    expect(controller.getAbortReason()).toBeUndefined();
   });
 
   it('aborts when the external signal is aborted', () => {
@@ -50,6 +52,7 @@ describe('createRequestController', () => {
     externalController.abort();
 
     expect(controller.signal.aborted).toBe(true);
+    expect(controller.getAbortReason()).toBe('external');
 
     controller.cleanup();
   });
@@ -64,6 +67,24 @@ describe('createRequestController', () => {
     });
 
     expect(controller.signal.aborted).toBe(true);
+    expect(controller.getAbortReason()).toBe('external');
+
+    controller.cleanup();
+  });
+
+  it('has no abort reason before timeout or external abort', () => {
+    vi.useFakeTimers();
+
+    const controller = createRequestController({
+      timeout: 100,
+    });
+
+    expect(controller.getAbortReason()).toBeUndefined();
+
+    vi.advanceTimersByTime(99);
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(controller.getAbortReason()).toBeUndefined();
 
     controller.cleanup();
   });

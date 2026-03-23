@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
+import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 import { shouldRetry } from '../../src/core/should-retry';
 import type { RetryConfig } from '../../src/types/config';
 import type { RequestMethod } from '../../src/types/request';
@@ -119,5 +120,15 @@ describe('shouldRetry', () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it('does not retry on externally aborted requests', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          error: new RequestAbortedError(),
+        }),
+      ),
+    ).toBe(false);
   });
 });

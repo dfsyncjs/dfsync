@@ -12,6 +12,7 @@ export type RequestConfig = {
   timeout?: number;
   retry?: RetryConfig;
   signal?: AbortSignal;
+  requestId?: string;
 };
 
 export type RequestOptionsWithoutBody = Omit<RequestConfig, 'method' | 'path' | 'body'>;
