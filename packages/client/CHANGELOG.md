@@ -1,5 +1,24 @@
 # @dfsync/client
 
+## 0.6.0
+
+### Minor Changes
+
+- [#48](https://github.com/dfsyncjs/dfsync/pull/48) [`b51448f`](https://github.com/dfsyncjs/dfsync/commit/b51448ffc3cc5f58a80177e8a8ab022436871fbf) Thanks [@romanindev](https://github.com/romanindev)! - Add request lifecycle support.
+
+  This release introduces a predictable and controllable request lifecycle for service-to-service communication.
+
+  New features:
+  - AbortSignal support with proper cancellation handling
+  - request context with execution metadata (requestId, attempt, startedAt, signal)
+  - request ID propagation via `x-request-id`
+  - improved lifecycle hook context
+
+  Additional improvements:
+  - distinguish between timeout and manual cancellation (`TimeoutError` vs `RequestAbortedError`)
+  - external aborts are not retried
+  - clearer request metadata handling
+
 ## 0.5.0
 
 ### Minor Changes
