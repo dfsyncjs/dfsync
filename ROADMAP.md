@@ -39,10 +39,11 @@ Delivered:
 
 Planned features:
 
-- request duration tracking (latency)
-- retry metadata (attempt number, delay, etc.)
+- request timing metadata (`startedAt`, `endedAt`, `durationMs`)
+- retry metadata (`attempt`, `maxAttempts`, `retryDelayMs`, `retryReason`)
 - support for `Retry-After` response header
-- retry lifecycle hooks (`onRetry`)
+- retry lifecycle hook (`onRetry`)
+- observability fields exposed in existing hook contexts
 
 ---
 
