@@ -19,11 +19,8 @@ type CreateExecutionContextParams = {
   headers: HeadersMap;
   attempt: number;
   maxAttempts: number;
+  requestId: string;
 };
-
-function generateRequestId(): string {
-  return Math.random().toString(36).slice(2);
-}
 
 export function createExecutionContext(params: CreateExecutionContextParams): ExecutionContext {
   return {
@@ -32,7 +29,7 @@ export function createExecutionContext(params: CreateExecutionContextParams): Ex
     headers: params.headers,
     attempt: params.attempt,
     maxAttempts: params.maxAttempts,
-    requestId: params.request.requestId ?? generateRequestId(),
+    requestId: params.requestId,
     startedAt: Date.now(),
   };
 }

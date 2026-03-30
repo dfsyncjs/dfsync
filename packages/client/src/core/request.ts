@@ -41,6 +41,7 @@ export async function request<T>(
   const url = new URL(buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query));
 
   let lastError: Error | undefined;
+  const requestId = requestConfig.requestId ?? Math.random().toString(36).slice(2);
 
   for (let attempt = 0; attempt <= retry.attempts; attempt++) {
     const headers: HeadersMap = {
@@ -55,6 +56,7 @@ export async function request<T>(
       headers,
       attempt,
       maxAttempts: retry.attempts + 1,
+      requestId,
     });
 
     applyRequestMetadata(execution);

@@ -3,7 +3,7 @@ import { createClient } from '../../src/core/create-client';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
 import { RequestAbortedError } from '../../src/errors/request-aborted-error';
-import { getFirstFetchInit, getFirstMockCall } from '../testUtils';
+import { getFirstMockCall, getSecondMockCall } from '../testUtils';
 
 describe('client retry', () => {
   it('retries on 503 and succeeds on the next attempt', async () => {
@@ -481,5 +481,89 @@ describe('client retry', () => {
     expect(typeof ctx.endedAt).toBe('number');
     expect(typeof ctx.durationMs).toBe('number');
     expect(ctx.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('calls onRetry for each retry attempt', async () => {
+    const onRetry = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('Service Unavailable', { status: 503 }))
+      .mockResolvedValueOnce(new Response('Service Unavailable', { status: 503 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 2,
+        retryOn: ['5xx'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        onRetry,
+      },
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(onRetry).toHaveBeenCalledTimes(2);
+
+    const [firstCtx] = getFirstMockCall(onRetry);
+    const [secondCtx] = getSecondMockCall(onRetry);
+
+    expect(firstCtx.attempt).toBe(0);
+    expect(secondCtx.attempt).toBe(1);
+    expect(firstCtx.maxAttempts).toBe(3);
+    expect(secondCtx.maxAttempts).toBe(3);
+  });
+
+  it('keeps the same requestId across retries', async () => {
+    const onRetry = vi.fn();
+    const beforeRequest = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('Service Unavailable', { status: 503 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 1,
+        retryOn: ['5xx'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        beforeRequest,
+        onRetry,
+      },
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    expect(beforeRequest).toHaveBeenCalledTimes(2);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    const [beforeFirst] = getFirstMockCall(beforeRequest);
+    const [beforeSecond] = getSecondMockCall(beforeRequest);
+    const [retryCtx] = getFirstMockCall(onRetry);
+
+    expect(beforeFirst.requestId).toBe(beforeSecond.requestId);
+    expect(beforeFirst.requestId).toBe(retryCtx.requestId);
   });
 });
