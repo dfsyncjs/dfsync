@@ -17,5 +17,8 @@ export type {
   HookAfterResponse,
   HookBeforeRequest,
   HookOnError,
+  HookOnRetry,
+  RetryContext,
+  RetrySource,
 } from './types/hooks';
 export type { RequestConfig, RequestMethod, RequestOptions } from './types/request';
