@@ -15,6 +15,7 @@ describe('createExecutionContext', () => {
       url: new URL('https://api.example.com/users'),
       headers: {},
       attempt: 0,
+      maxAttempts: 3,
     });
 
     expect(execution.requestId).toBe('req_custom_123');
@@ -29,6 +30,7 @@ describe('createExecutionContext', () => {
       url: new URL('https://api.example.com/users'),
       headers: {},
       attempt: 0,
+      maxAttempts: 3,
     });
 
     expect(typeof execution.requestId).toBe('string');
@@ -53,9 +55,11 @@ describe('createExecutionContext', () => {
       url,
       headers,
       attempt: 2,
+      maxAttempts: 3,
     });
 
     expect(execution.attempt).toBe(2);
+    expect(execution.maxAttempts).toBe(3);
     expect(execution.request.method).toBe('GET');
     expect(execution.request.path).toBe('/users');
     expect(execution.url.toString()).toBe('https://api.example.com/users');
@@ -65,6 +69,8 @@ describe('createExecutionContext', () => {
     expect(execution.requestId.length).toBeGreaterThan(0);
 
     expect(execution.startedAt).toBe(1234567890);
+    expect(execution.endedAt).toBeUndefined();
+    expect(execution.durationMs).toBeUndefined();
 
     dateNowSpy.mockRestore();
   });
