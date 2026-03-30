@@ -15,7 +15,6 @@ import {
   createErrorContext,
   createRetryContext,
 } from './hook-context';
-// import { getRetryDelay } from './get-retry-delay';
 import { getRetryDelayFromError } from './get-retry-delay-from-error';
 import { getRetryReason } from './get-retry-reason';
 import { normalizeError } from './normalize-error';
