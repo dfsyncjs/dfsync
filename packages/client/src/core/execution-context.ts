@@ -6,10 +6,11 @@ export type ExecutionContext = {
   url: URL;
   headers: HeadersMap;
   attempt: number;
-
-  // future lifecycle fields
+  maxAttempts: number;
   requestId: string;
   startedAt: number;
+  endedAt?: number;
+  durationMs?: number;
 };
 
 type CreateExecutionContextParams = {
@@ -17,6 +18,7 @@ type CreateExecutionContextParams = {
   url: URL;
   headers: HeadersMap;
   attempt: number;
+  maxAttempts: number;
 };
 
 function generateRequestId(): string {
@@ -29,7 +31,7 @@ export function createExecutionContext(params: CreateExecutionContextParams): Ex
     url: params.url,
     headers: params.headers,
     attempt: params.attempt,
-
+    maxAttempts: params.maxAttempts,
     requestId: params.request.requestId ?? generateRequestId(),
     startedAt: Date.now(),
   };
