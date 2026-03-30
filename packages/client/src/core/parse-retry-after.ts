@@ -9,6 +9,7 @@ export function parseRetryAfter(value: string | null | undefined): number | unde
     return undefined;
   }
 
+  // seconds format
   if (/^\d+$/.test(normalized)) {
     const seconds = Number(normalized);
 
@@ -17,6 +18,11 @@ export function parseRetryAfter(value: string | null | undefined): number | unde
     }
 
     return seconds * 1000;
+  }
+
+  // basic HTTP-date guard (avoid parsing random strings like "1.5", "+5")
+  if (!normalized.includes('GMT')) {
+    return undefined;
   }
 
   const timestamp = Date.parse(normalized);

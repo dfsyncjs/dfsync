@@ -3,6 +3,7 @@ import { createClient } from '../../src/core/create-client';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
 import { RequestAbortedError } from '../../src/errors/request-aborted-error';
+import { getFirstFetchInit, getFirstMockCall } from '../testUtils';
 
 describe('client retry', () => {
   it('retries on 503 and succeeds on the next attempt', async () => {
@@ -263,5 +264,222 @@ describe('client retry', () => {
 
     await expect(promise).rejects.toBeInstanceOf(RequestAbortedError);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onRetry with retry metadata before retrying', async () => {
+    const onRetry = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('Service Unavailable', { status: 503 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      retry: {
+        attempts: 1,
+        retryOn: ['5xx'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        onRetry,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    const [ctx] = getFirstMockCall(onRetry);
+
+    expect(ctx.attempt).toBe(0);
+    expect(ctx.maxAttempts).toBe(2);
+    expect(ctx.retryDelayMs).toBe(100);
+    expect(ctx.retryReason).toBe('5xx');
+    expect(ctx.retrySource).toBe('backoff');
+    expect(typeof ctx.requestId).toBe('string');
+    expect(typeof ctx.startedAt).toBe('number');
+    expect(ctx.error).toBeInstanceOf(Error);
+  });
+
+  it('does not call onRetry when retry is not allowed', async () => {
+    const onRetry = vi.fn();
+
+    const fetchMock = vi.fn().mockResolvedValue(new Response('Bad Request', { status: 400 }));
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      retry: {
+        attempts: 2,
+        retryOn: ['5xx'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        onRetry,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).rejects.toThrow();
+
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it('uses Retry-After header value instead of backoff delay', async () => {
+    const onRetry = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response('Too Many Requests', {
+          status: 429,
+          headers: {
+            'retry-after': '2',
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      retry: {
+        attempts: 1,
+        retryOn: ['429'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        onRetry,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+
+    const [ctx] = getFirstMockCall(onRetry);
+
+    expect(ctx.retryDelayMs).toBe(2_000);
+    expect(ctx.retryReason).toBe('429');
+    expect(ctx.retrySource).toBe('retry-after');
+  });
+
+  it('falls back to backoff when Retry-After header is invalid', async () => {
+    const onRetry = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response('Too Many Requests', {
+          status: 429,
+          headers: {
+            'retry-after': 'invalid',
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      retry: {
+        attempts: 1,
+        retryOn: ['429'],
+        backoff: 'fixed',
+        baseDelayMs: 150,
+      },
+      hooks: {
+        onRetry,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    const [ctx] = getFirstMockCall(onRetry);
+
+    expect(ctx.retryDelayMs).toBe(150);
+    expect(ctx.retrySource).toBe('backoff');
+  });
+
+  it('provides timing metadata to afterResponse hook', async () => {
+    const afterResponse = vi.fn();
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      hooks: {
+        afterResponse,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).resolves.toEqual({ ok: true });
+
+    expect(afterResponse).toHaveBeenCalledTimes(1);
+
+    const [ctx] = getFirstMockCall(afterResponse);
+
+    expect(typeof ctx.startedAt).toBe('number');
+    expect(typeof ctx.endedAt).toBe('number');
+    expect(typeof ctx.durationMs).toBe('number');
+    expect(ctx.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('provides timing metadata to onError hook on final failure', async () => {
+    const onError = vi.fn();
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response('Service Unavailable', { status: 503 }));
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      retry: {
+        attempts: 0,
+        retryOn: ['5xx'],
+        backoff: 'fixed',
+        baseDelayMs: 100,
+      },
+      hooks: {
+        onError,
+      },
+      fetch: fetchMock,
+    });
+
+    await expect(client.get('/health')).rejects.toThrow();
+
+    expect(onError).toHaveBeenCalledTimes(1);
+
+    const [ctx] = getFirstMockCall(onError);
+
+    expect(typeof ctx.startedAt).toBe('number');
+    expect(typeof ctx.endedAt).toBe('number');
+    expect(typeof ctx.durationMs).toBe('number');
+    expect(ctx.durationMs).toBeGreaterThanOrEqual(0);
   });
 });
