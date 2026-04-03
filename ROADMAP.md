@@ -37,7 +37,9 @@ Delivered:
 
 **Focus**: logging, monitoring, and request insights.
 
-Planned features:
+Status: completed
+
+Delivered:
 
 - request timing metadata (`startedAt`, `endedAt`, `durationMs`)
 - retry metadata (`attempt`, `maxAttempts`, `retryDelayMs`, `retryReason`)
