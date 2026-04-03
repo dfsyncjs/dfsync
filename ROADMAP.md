@@ -37,12 +37,15 @@ Delivered:
 
 **Focus**: logging, monitoring, and request insights.
 
-Planned features:
+Status: completed
 
-- request duration tracking (latency)
-- retry metadata (attempt number, delay, etc.)
+Delivered:
+
+- request timing metadata (`startedAt`, `endedAt`, `durationMs`)
+- retry metadata (`attempt`, `maxAttempts`, `retryDelayMs`, `retryReason`)
 - support for `Retry-After` response header
-- retry lifecycle hooks (`onRetry`)
+- retry lifecycle hook (`onRetry`)
+- observability fields exposed in existing hook contexts
 
 ---
 

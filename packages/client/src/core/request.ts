@@ -6,20 +6,30 @@ import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
 import { applyRequestMetadata } from './apply-request-metadata';
+import type { ExecutionContext } from './execution-context';
 import { createExecutionContext } from './execution-context';
 import { createRequestController } from './create-request-controller';
 import {
   createAfterResponseContext,
   createBeforeRequestContext,
   createErrorContext,
+  createRetryContext,
 } from './hook-context';
-import { getRetryDelay } from './get-retry-delay';
+import { getRetryDelayFromError } from './get-retry-delay-from-error';
+import { getRetryReason } from './get-retry-reason';
 import { normalizeError } from './normalize-error';
 import { parseResponse } from './parse-response';
 import { resolveRuntimeConfig } from './resolve-runtime-config';
 import { runHooks, runHooksSafely } from './run-hooks';
 import { shouldRetry } from './should-retry';
 import { sleep } from './sleep';
+
+function finalizeExecution(execution: ExecutionContext): void {
+  const endedAt = Date.now();
+
+  execution.endedAt = endedAt;
+  execution.durationMs = endedAt - execution.startedAt;
+}
 
 export async function request<T>(
   clientConfig: ClientConfig,
@@ -30,6 +40,7 @@ export async function request<T>(
   const url = new URL(buildUrl(clientConfig.baseUrl, requestConfig.path, requestConfig.query));
 
   let lastError: Error | undefined;
+  const requestId = requestConfig.requestId ?? Math.random().toString(36).slice(2);
 
   for (let attempt = 0; attempt <= retry.attempts; attempt++) {
     const headers: HeadersMap = {
@@ -43,6 +54,8 @@ export async function request<T>(
       url,
       headers,
       attempt,
+      maxAttempts: retry.attempts + 1,
+      requestId,
     });
 
     applyRequestMetadata(execution);
@@ -104,22 +117,46 @@ export async function request<T>(
       });
 
       if (!canRetry) {
-        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
+        finalizeExecution(execution);
 
+        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
         throw error;
       }
 
-      const delay = getRetryDelay({
+      const retryReason = getRetryReason(error);
+
+      if (!retryReason) {
+        finalizeExecution(execution);
+
+        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
+        throw error;
+      }
+
+      const { delayMs, source } = getRetryDelayFromError({
+        error,
         attempt: execution.attempt + 1,
         backoff: retry.backoff,
         baseDelayMs: retry.baseDelayMs,
       });
 
-      await sleep(delay);
+      await runHooksSafely(
+        clientConfig.hooks?.onRetry,
+        createRetryContext({
+          execution,
+          error,
+          retryDelayMs: delayMs,
+          retryReason,
+          retrySource: source,
+        }),
+      );
+
+      await sleep(delayMs);
       continue;
     } finally {
       requestController.cleanup();
     }
+
+    finalizeExecution(execution);
 
     await runHooks(
       clientConfig.hooks?.afterResponse,

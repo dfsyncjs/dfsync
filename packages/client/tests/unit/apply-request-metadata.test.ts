@@ -17,6 +17,7 @@ function createExecutionContext(overrides?: Partial<ExecutionContext>): Executio
       accept: 'application/json',
     },
     attempt: 0,
+    maxAttempts: 1,
     requestId: 'req-123',
     startedAt: 1234567890,
     ...overrides,

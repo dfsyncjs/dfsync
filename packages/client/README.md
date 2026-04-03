@@ -64,13 +64,11 @@ client.request(config)
 - request ID propagation (`x-request-id`)
 - request cancellation via `AbortSignal`
 - built-in retry with configurable policies
-- lifecycle hooks: `beforeRequest`, `afterResponse`, `onError`
+- lifecycle hooks: `beforeRequest`, `afterResponse`, `onRetry`, `onError`
 - request timeout support
-
 - typed responses
 - automatic JSON parsing
 - consistent error handling
-
 - auth support: bearer, API key, custom
 - support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
 
@@ -87,9 +85,10 @@ A request in `@dfsync/client` follows a predictable lifecycle:
 5. attach request metadata (e.g. `x-request-id`)
 6. run `beforeRequest` hooks
 7. send request with `fetch`
-8. retry on failure (if configured)
-9. parse response (JSON, text, or `undefined` for `204`)
-10. run `afterResponse` or `onError` hooks
+8. run `onRetry` before a retry attempt
+9. retry on failure (if configured)
+10. parse response (JSON, text, or `undefined` for `204`)
+11. run `afterResponse` or `onError` hooks
 
 ## Request context
 
@@ -157,6 +156,49 @@ dfsync provides structured error types:
 - `RequestAbortedError` — request was cancelled
 
 This allows you to handle failures more precisely.
+
+## Observability
+
+dfsync provides built-in request lifecycle metadata for better visibility and debugging.
+
+Each request exposes:
+
+- **requestId** — stable identifier across retries
+- **attempt / maxAttempts** — retry progress
+- **startedAt / endedAt / durationMs** — timing information
+- **retryReason** — why a retry happened (`network-error`, `5xx`, `429`)
+- **retryDelayMs** — delay before the next retry
+- **retrySource** — delay source (`backoff` or `retry-after`)
+
+### Example
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  retry: {
+    attempts: 2,
+    retryOn: ['5xx'],
+  },
+  hooks: {
+    onRetry(ctx) {
+      console.log({
+        requestId: ctx.requestId,
+        attempt: ctx.attempt,
+        maxAttempts: ctx.maxAttempts,
+        delay: ctx.retryDelayMs,
+        reason: ctx.retryReason,
+        source: ctx.retrySource,
+      });
+    },
+  },
+});
+```
+
+This makes it easier to understand:
+
+- what happened during a request
+- how retries behaved
+- how long requests actually took
 
 ## Roadmap
 

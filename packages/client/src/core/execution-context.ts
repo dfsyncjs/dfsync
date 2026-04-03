@@ -6,10 +6,11 @@ export type ExecutionContext = {
   url: URL;
   headers: HeadersMap;
   attempt: number;
-
-  // future lifecycle fields
+  maxAttempts: number;
   requestId: string;
   startedAt: number;
+  endedAt?: number;
+  durationMs?: number;
 };
 
 type CreateExecutionContextParams = {
@@ -17,11 +18,9 @@ type CreateExecutionContextParams = {
   url: URL;
   headers: HeadersMap;
   attempt: number;
+  maxAttempts: number;
+  requestId: string;
 };
-
-function generateRequestId(): string {
-  return Math.random().toString(36).slice(2);
-}
 
 export function createExecutionContext(params: CreateExecutionContextParams): ExecutionContext {
   return {
@@ -29,8 +28,8 @@ export function createExecutionContext(params: CreateExecutionContextParams): Ex
     url: params.url,
     headers: params.headers,
     attempt: params.attempt,
-
-    requestId: params.request.requestId ?? generateRequestId(),
+    maxAttempts: params.maxAttempts,
+    requestId: params.requestId,
     startedAt: Date.now(),
   };
 }

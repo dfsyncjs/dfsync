@@ -5,7 +5,7 @@ import type { HeadersMap } from '../../src/types/common';
 import type { RequestConfig } from '../../src/types/request';
 
 describe('createExecutionContext', () => {
-  it('uses request.requestId when provided', () => {
+  it('uses provided requestId', () => {
     const execution = createExecutionContext({
       request: {
         method: 'GET',
@@ -15,24 +15,11 @@ describe('createExecutionContext', () => {
       url: new URL('https://api.example.com/users'),
       headers: {},
       attempt: 0,
+      maxAttempts: 3,
+      requestId: 'req_custom_123',
     });
 
     expect(execution.requestId).toBe('req_custom_123');
-  });
-
-  it('generates requestId when request.requestId is not provided', () => {
-    const execution = createExecutionContext({
-      request: {
-        method: 'GET',
-        path: '/users',
-      },
-      url: new URL('https://api.example.com/users'),
-      headers: {},
-      attempt: 0,
-    });
-
-    expect(typeof execution.requestId).toBe('string');
-    expect(execution.requestId.length).toBeGreaterThan(0);
   });
 
   it('creates execution context with request lifecycle metadata', () => {
@@ -53,19 +40,39 @@ describe('createExecutionContext', () => {
       url,
       headers,
       attempt: 2,
+      maxAttempts: 3,
+      requestId: 'req_custom_123',
     });
 
     expect(execution.attempt).toBe(2);
+    expect(execution.maxAttempts).toBe(3);
     expect(execution.request.method).toBe('GET');
     expect(execution.request.path).toBe('/users');
     expect(execution.url.toString()).toBe('https://api.example.com/users');
     expect(execution.headers).toBe(headers);
-
-    expect(execution.requestId).toEqual(expect.any(String));
-    expect(execution.requestId.length).toBeGreaterThan(0);
-
+    expect(execution.requestId).toBe('req_custom_123');
     expect(execution.startedAt).toBe(1234567890);
+    expect(execution.endedAt).toBeUndefined();
+    expect(execution.durationMs).toBeUndefined();
 
     dateNowSpy.mockRestore();
+  });
+
+  it('stores request and execution requestId independently', () => {
+    const execution = createExecutionContext({
+      request: {
+        method: 'GET',
+        path: '/users',
+        requestId: 'req_from_request',
+      },
+      url: new URL('https://api.example.com/users'),
+      headers: {},
+      attempt: 0,
+      maxAttempts: 1,
+      requestId: 'req_from_execution',
+    });
+
+    expect(execution.request.requestId).toBe('req_from_request');
+    expect(execution.requestId).toBe('req_from_execution');
   });
 });
