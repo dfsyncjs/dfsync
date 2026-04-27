@@ -2,6 +2,11 @@ import type { HeadersMap } from './common';
 import type { RequestConfig } from './request';
 import type { RetryCondition } from './config';
 
+export type ResponseValidationResult = {
+  enabled: boolean;
+  passed: boolean;
+};
+
 type LifecycleContextBase = {
   request: RequestConfig;
   url: URL;
@@ -20,6 +25,7 @@ export type BeforeRequestContext = LifecycleContextBase;
 export type AfterResponseContext<T = unknown> = LifecycleContextBase & {
   response: Response;
   data: T;
+  validation?: ResponseValidationResult;
 };
 
 export type ErrorContext = LifecycleContextBase & {
