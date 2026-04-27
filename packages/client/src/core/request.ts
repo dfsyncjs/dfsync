@@ -112,6 +112,11 @@ export async function request<T>(
       if (validateResponse) {
         const validationResult = await validateResponse(data);
 
+        execution.validation = {
+          enabled: true,
+          passed: validationResult !== false,
+        };
+
         if (validationResult === false) {
           throw new ValidationError(response, data);
         }
