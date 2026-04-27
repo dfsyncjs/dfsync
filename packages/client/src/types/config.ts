@@ -3,6 +3,10 @@ import type { AuthConfig } from './auth';
 import type { HooksConfig } from './hooks';
 import type { RequestMethod } from './request';
 
+export type ResponseValidator<TData = unknown> = (
+  data: TData,
+) => boolean | void | Promise<boolean | void>;
+
 export type RetryCondition = 'network-error' | '5xx' | '429';
 export type RetryBackoff = 'fixed' | 'exponential';
 
@@ -22,4 +26,5 @@ export type ClientConfig = {
   hooks?: HooksConfig;
   retry?: RetryConfig;
   fetch?: typeof globalThis.fetch;
+  validateResponse?: ResponseValidator;
 };

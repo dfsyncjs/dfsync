@@ -1,5 +1,6 @@
 import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
+import { ValidationError } from '../errors/validation-error';
 import type { HeadersMap } from '../types/common';
 import type { ClientConfig } from '../types/config';
 import type { RequestConfig } from '../types/request';
@@ -104,6 +105,16 @@ export async function request<T>(
 
       if (!response.ok) {
         throw new HttpError(response, data);
+      }
+
+      const validateResponse = execution.request.validateResponse ?? clientConfig.validateResponse;
+
+      if (validateResponse) {
+        const validationResult = await validateResponse(data);
+
+        if (validationResult === false) {
+          throw new ValidationError(response, data);
+        }
       }
     } catch (rawError) {
       const error = normalizeError(rawError, timeout, requestController.getAbortReason());

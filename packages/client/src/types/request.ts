@@ -1,5 +1,5 @@
 import type { HeadersMap, QueryParams } from './common';
-import type { RetryConfig } from './config';
+import type { RetryConfig, ResponseValidator } from './config';
 
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -13,6 +13,7 @@ export type RequestConfig = {
   retry?: RetryConfig;
   signal?: AbortSignal;
   requestId?: string;
+  validateResponse?: ResponseValidator;
 };
 
 export type RequestOptionsWithoutBody = Omit<RequestConfig, 'method' | 'path' | 'body'>;
