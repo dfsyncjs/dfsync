@@ -55,6 +55,8 @@ Full documentation:
 
 - auth support: bearer, API key, custom
 - support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
+- response validation
+- idempotency key support for safer retries
 
 **@dfsync/client** provides a predictable and controllable HTTP request lifecycle for service-to-service communication.
 

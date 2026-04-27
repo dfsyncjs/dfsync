@@ -53,12 +53,15 @@ Delivered:
 
 Focus: safer and more predictable integrations.
 
-Status: in progress
+Status: completed
 
-Planned features:
+Delivered:
 
-- response validation (schema-based or custom)
-- idempotency key support for safe retries
+- response validation with client-level defaults and request-level overrides
+- `ValidationError` for failed response validation
+- validation result metadata in lifecycle hooks
+- idempotency key support via the `idempotency-key` header
+- safer retry behavior for non-idempotent requests
 
 ### 0.9.x — Platform readiness & API stabilization
 
