@@ -13,6 +13,7 @@ export type RequestConfig = {
   retry?: RetryConfig;
   signal?: AbortSignal;
   requestId?: string;
+  idempotencyKey?: string;
   validateResponse?: ResponseValidator;
 };
 
