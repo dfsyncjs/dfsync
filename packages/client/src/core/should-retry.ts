@@ -37,5 +37,6 @@ export function shouldRetry({ attempt, method, retry, error }: ShouldRetryParams
     return false;
   }
 
+  // Non-transient errors (e.g. validation failures) are not retried.
   return false;
 }

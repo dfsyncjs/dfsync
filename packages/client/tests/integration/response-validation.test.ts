@@ -92,4 +92,32 @@ describe('response validation', () => {
 
     await expect(client.get('/users/1')).resolves.toEqual({ id: 'user-1' });
   });
+
+  it('does not retry when response validation fails', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ name: 'Roman' }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        retryOn: ['network-error', '5xx', '429'],
+        retryMethods: ['GET'],
+      },
+      validateResponse(data) {
+        return typeof data === 'object' && data !== null && 'id' in data;
+      },
+    });
+
+    await expect(client.get('/users/1')).rejects.toBeInstanceOf(ValidationError);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
