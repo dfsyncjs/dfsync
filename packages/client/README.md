@@ -71,6 +71,8 @@ client.request(config)
 - consistent error handling
 - auth support: bearer, API key, custom
 - support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
+- response validation with `ValidationError`
+- idempotency key support for safer retries
 
 It provides a predictable and controllable HTTP request lifecycle for service-to-service communication.
 
@@ -88,7 +90,8 @@ A request in `@dfsync/client` follows a predictable lifecycle:
 8. run `onRetry` before a retry attempt
 9. retry on failure (if configured)
 10. parse response (JSON, text, or `undefined` for `204`)
-11. run `afterResponse` or `onError` hooks
+11. validate response data (if configured)
+12. run `afterResponse` or `onError` hooks
 
 ## Request context
 
@@ -148,18 +151,118 @@ Cancellation is treated differently from timeouts:
 
 ## Errors
 
-dfsync provides structured error types:
+`@dfsync/client` provides structured error types:
 
 - `HttpError` — non-2xx responses
 - `NetworkError` — network failures
 - `TimeoutError` — request timed out
+- `ValidationError` — response validation failed
 - `RequestAbortedError` — request was cancelled
 
 This allows you to handle failures more precisely.
 
+## Response validation
+
+You can validate successful responses before they are returned to the caller.
+
+This is useful when your service depends on another API and needs to fail fast when the response shape changes unexpectedly.
+Instead of passing malformed data deeper into your application, validation turns the mismatch into a structured `ValidationError`.
+
+Validation runs only after a successful HTTP response. Non-2xx responses still throw `HttpError`.
+
+```ts
+import { createClient } from '@dfsync/client';
+
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  validateResponse(data) {
+    return typeof data === 'object' && data !== null && 'id' in data;
+  },
+});
+
+const user = await client.get('/users/1');
+```
+
+Return `false` to fail validation. Returning `true` or nothing means validation passed.
+
+You can also override validation per request:
+
+```ts
+await client.get('/users/1', {
+  validateResponse(data) {
+    return typeof data === 'object' && data !== null && 'email' in data;
+  },
+});
+```
+
+When validation fails, `@dfsync/client` throws `ValidationError`:
+
+```ts
+import { ValidationError } from '@dfsync/client';
+
+try {
+  await client.get('/users/1');
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.log(error.data);
+  }
+}
+```
+
+Validation failures are not retried by default.
+
+## Idempotency keys
+
+For operations that may be retried safely, you can attach an idempotency key per request.
+
+This helps protect non-idempotent operations, such as payments or job creation, from being applied more than once when a request is retried after a transient failure.
+The receiving service should treat repeated requests with the same idempotency key as the same logical operation.
+
+```ts
+await client.post(
+  '/payments',
+  { amount: 100 },
+  {
+    idempotencyKey: 'payment-123',
+  },
+);
+```
+
+This adds the following header:
+
+```text
+idempotency-key: payment-123
+```
+
+`POST` and `PATCH` requests are not retried unless both conditions are true:
+
+- the method is explicitly included in `retry.retryMethods`
+- the request provides `idempotencyKey`
+
+By default, `POST` and `PATCH` are not retried. This keeps unsafe retries opt-in and makes the retry behavior explicit at the call site.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  retry: {
+    attempts: 3,
+    retryMethods: ['POST'],
+    retryOn: ['5xx'],
+  },
+});
+
+await client.post(
+  '/payments',
+  { amount: 100 },
+  {
+    idempotencyKey: 'payment-123',
+  },
+);
+```
+
 ## Observability
 
-dfsync provides built-in request lifecycle metadata for better visibility and debugging.
+`@dfsync/client` provides built-in request lifecycle metadata for better visibility and debugging.
 
 Each request exposes:
 
@@ -189,6 +292,23 @@ const client = createClient({
         reason: ctx.retryReason,
         source: ctx.retrySource,
       });
+    },
+  },
+});
+```
+
+When response validation is configured and passes, `afterResponse` also receives validation metadata.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  validateResponse(data) {
+    return typeof data === 'object' && data !== null && 'id' in data;
+  },
+  hooks: {
+    afterResponse(ctx) {
+      console.log(ctx.validation);
+      // { enabled: true, passed: true }
     },
   },
 });
