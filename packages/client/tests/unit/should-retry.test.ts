@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
+import { ValidationError } from '../../src/errors/validation-error';
 import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 import { shouldRetry } from '../../src/core/should-retry';
 import type { RetryConfig } from '../../src/types/config';
@@ -21,6 +22,18 @@ function createHttpError(status: number, statusText = 'Error'): HttpError {
   });
 
   return new HttpError(response);
+}
+
+function createValidationError(): ValidationError {
+  const response = new Response(JSON.stringify({ name: 'Roman' }), {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'content-type': 'application/json',
+    },
+  });
+
+  return new ValidationError(response, { name: 'Roman' });
 }
 
 function createParams(
@@ -127,6 +140,16 @@ describe('shouldRetry', () => {
       shouldRetry(
         createParams({
           error: new RequestAbortedError(),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('does not retry validation errors', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          error: createValidationError(),
         }),
       ),
     ).toBe(false);
