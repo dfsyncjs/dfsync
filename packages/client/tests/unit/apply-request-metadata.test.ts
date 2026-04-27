@@ -45,4 +45,44 @@ describe('applyRequestMetadata', () => {
 
     expect(execution.headers['x-request-id']).toBe('existing-request-id');
   });
+
+  it('adds idempotency-key header when idempotencyKey is provided', () => {
+    const execution = createExecutionContext({
+      request: {
+        method: 'POST',
+        path: '/payments',
+        idempotencyKey: 'idem-123',
+      },
+    });
+
+    applyRequestMetadata(execution);
+
+    expect(execution.headers['idempotency-key']).toBe('idem-123');
+  });
+
+  it('does not overwrite an existing idempotency-key header', () => {
+    const execution = createExecutionContext({
+      request: {
+        method: 'POST',
+        path: '/payments',
+        idempotencyKey: 'idem-from-option',
+      },
+      headers: {
+        accept: 'application/json',
+        'idempotency-key': 'idem-from-header',
+      },
+    });
+
+    applyRequestMetadata(execution);
+
+    expect(execution.headers['idempotency-key']).toBe('idem-from-header');
+  });
+
+  it('does not add idempotency-key header when idempotencyKey is not provided', () => {
+    const execution = createExecutionContext();
+
+    applyRequestMetadata(execution);
+
+    expect(execution.headers).not.toHaveProperty('idempotency-key');
+  });
 });
