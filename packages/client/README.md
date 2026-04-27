@@ -10,7 +10,7 @@ Designed for backend services, microservices and internal APIs where consistent 
 
 Home page: [https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
-Full documentation: [https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
+Full documentation: [https://dfsyncjs.github.io/#/docs/client](https://dfsyncjs.github.io/#/docs/client)
 
 ## Install
 
