@@ -129,6 +129,7 @@ export async function request<T>(
         attempt: execution.attempt,
         method: execution.request.method,
         retry,
+        idempotencyKey: execution.request.idempotencyKey,
         error,
       });
 
