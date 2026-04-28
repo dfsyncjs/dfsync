@@ -1,5 +1,15 @@
 # @dfsync/client
 
+## 0.8.0
+
+### Minor Changes
+
+- [#67](https://github.com/dfsyncjs/dfsync/pull/67) [`90a8625`](https://github.com/dfsyncjs/dfsync/commit/90a8625a0dcf00f4b90db22d974b82b542fcb37c) Thanks [@romanindev](https://github.com/romanindev)! - - add integration safety features
+  - add response validation with `ValidationError`
+  - expose validation result in lifecycle hooks
+  - add idempotency key support
+  - improve retry safety for non-idempotent requests
+
 ## 0.7.0
 
 ### Minor Changes
