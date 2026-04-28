@@ -23,6 +23,7 @@ If a package does not have CLAUDE.md:
 
 - follow root rules only
 - do NOT invent architecture
+- ask instead of guessing
 
 ## Development principles
 

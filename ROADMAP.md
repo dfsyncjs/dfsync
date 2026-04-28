@@ -65,23 +65,36 @@ Delivered:
 
 ### 0.9.x — Platform readiness & API stabilization
 
-Focus: stabilizing core APIs, improving extensibility, and preparing dfsync for production-scale usage and future SaaS integration.
+Focus: stabilizing core APIs, improving extensibility, and preparing `@dfsync/client` for production-scale usage and future SaaS integration.
 
 Planned features:
 
 - stable validation API (finalized `responseSchema` contract)
+  - validation must run after response parsing
+  - validation must not affect retry logic
+  - validation adapters must follow a consistent interface
 - validation adapters (starting with `zod`)
-- serializer / parser extensibility (custom request/response handling)
+  - adapters must be lightweight wrappers
+  - must not introduce runtime dependencies into core
+  - must not change validation execution flow
+- serializer / parser extensibility
+  - must integrate into existing request/response pipeline
+  - must not bypass error handling or validation stages
+  - must preserve default JSON behavior when not configured
 - improved retry model:
   - retry budget (`maxElapsedMs`)
   - jitter support
   - advanced retry conditions
+  - must remain backward compatible with existing retry behavior
+  - must preserve Retry-After handling
 - finalized error model:
   - `HttpError`
   - `NetworkError`
   - `TimeoutError`
   - `AbortError`
   - `ValidationError`
+  - must preserve backward compatibility
+  - must not change existing error inheritance unexpectedly
 - extended error metadata:
   - `requestId`
   - `attempt`
@@ -92,8 +105,19 @@ Planned features:
   - auth provider interface
   - validation adapter interface
   - retry policy interface
-- operation naming support (`operationName` for requests)
+  - must be minimal and explicit
+  - must not expose internal implementation details
+  - must be version-stable
+- operation naming support (`operationName`)
+  - must be part of request context
+  - must be available in hooks and telemetry
 - documentation restructuring (use-case oriented)
+
+Constraints:
+
+- no breaking changes in public API within 0.9.x
+- avoid over-engineering in extensibility APIs
+- new features must not introduce significant runtime overhead
 
 ### 1.0.x — Stable core & production readiness
 
