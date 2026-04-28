@@ -1,4 +1,4 @@
-import { HttpError } from '../errors/http-error';
+import { DfsyncError } from '../errors/base-error';
 import { NetworkError } from '../errors/network-error';
 import { TimeoutError } from '../errors/timeout-error';
 import { RequestAbortedError } from '../errors/request-aborted-error';
@@ -9,7 +9,7 @@ export function normalizeError(
   timeout: number,
   abortReason?: RequestAbortReason,
 ): Error {
-  if (error instanceof HttpError) {
+  if (error instanceof DfsyncError) {
     return error;
   }
 

@@ -38,6 +38,7 @@ export function createAfterResponseContext<T>(
     ...createLifecycleContextBase(execution),
     response,
     data,
+    ...(execution.validation !== undefined ? { validation: execution.validation } : {}),
   };
 }
 

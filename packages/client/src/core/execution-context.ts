@@ -1,4 +1,5 @@
 import type { HeadersMap } from '../types/common';
+import type { ResponseValidationResult } from '../types/hooks';
 import type { RequestConfig } from '../types/request';
 
 export type ExecutionContext = {
@@ -11,6 +12,7 @@ export type ExecutionContext = {
   startedAt: number;
   endedAt?: number;
   durationMs?: number;
+  validation?: ResponseValidationResult;
 };
 
 type CreateExecutionContextParams = {

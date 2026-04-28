@@ -38,7 +38,7 @@ Home page:
 [https://dfsyncjs.github.io](https://dfsyncjs.github.io)
 
 Full documentation:
-[https://dfsyncjs.github.io/#/docs](https://dfsyncjs.github.io/#/docs)
+[https://dfsyncjs.github.io/#/docs/client](https://dfsyncjs.github.io/#/docs/client)
 
 #### Main features
 
@@ -55,6 +55,8 @@ Full documentation:
 
 - auth support: bearer, API key, custom
 - support for `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`
+- response validation
+- idempotency key support for safer retries
 
 **@dfsync/client** provides a predictable and controllable HTTP request lifecycle for service-to-service communication.
 

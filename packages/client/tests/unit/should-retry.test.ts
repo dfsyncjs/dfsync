@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HttpError } from '../../src/errors/http-error';
 import { NetworkError } from '../../src/errors/network-error';
+import { ValidationError } from '../../src/errors/validation-error';
 import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 import { shouldRetry } from '../../src/core/should-retry';
 import type { RetryConfig } from '../../src/types/config';
@@ -23,11 +24,24 @@ function createHttpError(status: number, statusText = 'Error'): HttpError {
   return new HttpError(response);
 }
 
+function createValidationError(): ValidationError {
+  const response = new Response(JSON.stringify({ name: 'Roman' }), {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'content-type': 'application/json',
+    },
+  });
+
+  return new ValidationError(response, { name: 'Roman' });
+}
+
 function createParams(
   overrides: Partial<{
     attempt: number;
     method: RequestMethod;
     retry: Required<RetryConfig>;
+    idempotencyKey?: string;
     error: unknown;
   }> = {},
 ) {
@@ -107,19 +121,39 @@ describe('shouldRetry', () => {
     ).toBe(false);
   });
 
-  it('retries POST when explicitly allowed', () => {
+  it('retries POST when explicitly allowed and idempotencyKey is provided', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          method: 'POST',
+          idempotencyKey: 'idem-123',
+          retry: {
+            ...defaultRetry,
+            attempts: 3,
+            retryMethods: ['POST'],
+            retryOn: ['network-error'],
+          },
+          error: new NetworkError('Network request failed', new Error('socket hang up')),
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('does not retry POST without idempotencyKey even when explicitly allowed', () => {
     expect(
       shouldRetry(
         createParams({
           method: 'POST',
           retry: {
             ...defaultRetry,
-            retryMethods: ['GET', 'PUT', 'DELETE', 'POST'],
+            attempts: 3,
+            retryMethods: ['POST'],
+            retryOn: ['network-error'],
           },
-          error: new NetworkError(),
+          error: new NetworkError('Network request failed', new Error('socket hang up')),
         }),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('does not retry on externally aborted requests', () => {
@@ -130,5 +164,85 @@ describe('shouldRetry', () => {
         }),
       ),
     ).toBe(false);
+  });
+
+  it('does not retry validation errors', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          error: createValidationError(),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('does not retry POST requests without idempotencyKey', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          method: 'POST',
+          retry: {
+            ...defaultRetry,
+            attempts: 3,
+            retryMethods: ['POST'],
+            retryOn: ['5xx'],
+          },
+          error: createHttpError(500),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('retries POST requests with idempotencyKey when method and condition are allowed', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          method: 'POST',
+          idempotencyKey: 'idem-123',
+          retry: {
+            ...defaultRetry,
+            attempts: 3,
+            retryMethods: ['POST'],
+            retryOn: ['5xx'],
+          },
+          error: createHttpError(500),
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('does not retry PATCH requests without idempotencyKey', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          method: 'PATCH',
+          retry: {
+            ...defaultRetry,
+            attempts: 3,
+            retryMethods: ['PATCH'],
+            retryOn: ['5xx'],
+          },
+          error: createHttpError(500),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('retries PATCH requests with idempotencyKey when method and condition are allowed', () => {
+    expect(
+      shouldRetry(
+        createParams({
+          method: 'PATCH',
+          idempotencyKey: 'idem-123',
+          retry: {
+            ...defaultRetry,
+            attempts: 3,
+            retryMethods: ['PATCH'],
+            retryOn: ['5xx'],
+          },
+          error: createHttpError(500),
+        }),
+      ),
+    ).toBe(true);
   });
 });

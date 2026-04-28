@@ -9,15 +9,28 @@ type ShouldRetryParams = {
   attempt: number;
   method: RequestMethod;
   retry: NormalizedRetryConfig;
+  idempotencyKey?: string | undefined;
   error: unknown;
 };
 
-export function shouldRetry({ attempt, method, retry, error }: ShouldRetryParams): boolean {
+export function shouldRetry({
+  attempt,
+  method,
+  retry,
+  idempotencyKey,
+  error,
+}: ShouldRetryParams): boolean {
   if (attempt >= retry.attempts) {
     return false;
   }
 
   if (!retry.retryMethods.includes(method)) {
+    return false;
+  }
+
+  const isNonIdempotentMethod = method === 'POST' || method === 'PATCH';
+
+  if (isNonIdempotentMethod && !idempotencyKey) {
     return false;
   }
 
@@ -37,5 +50,6 @@ export function shouldRetry({ attempt, method, retry, error }: ShouldRetryParams
     return false;
   }
 
+  // Non-transient errors (e.g. validation failures) are not retried.
   return false;
 }

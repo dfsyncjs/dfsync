@@ -187,4 +187,71 @@ describe('request headers', () => {
     expect(typeof requestId).toBe('string');
     expect(requestId!.length).toBeGreaterThan(0);
   });
+
+  it('propagates idempotencyKey to idempotency-key header', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+    });
+
+    await client.post(
+      '/payments',
+      {
+        amount: 100,
+      },
+      {
+        idempotencyKey: 'idem_123',
+      },
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const init = getFirstFetchInit(fetchMock);
+    const headers = init.headers as Record<string, string>;
+
+    expect(headers['idempotency-key']).toBe('idem_123');
+  });
+
+  it('prefers explicit idempotency-key header over idempotencyKey option', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+    });
+
+    await client.post(
+      '/payments',
+      {
+        amount: 100,
+      },
+      {
+        idempotencyKey: 'idem_from_option',
+        headers: {
+          'idempotency-key': 'idem_from_header',
+        },
+      },
+    );
+
+    const init = getFirstFetchInit(fetchMock);
+    const headers = init.headers as Record<string, string>;
+
+    expect(headers['idempotency-key']).toBe('idem_from_header');
+  });
 });

@@ -106,7 +106,7 @@ describe('client retry', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('retries POST when explicitly allowed', async () => {
+  it('retries POST when explicitly allowed and idempotencyKey is provided', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
       .mockRejectedValueOnce(new Error('socket hang up'))
@@ -128,11 +128,79 @@ describe('client retry', () => {
       },
     });
 
-    const result = await client.post<{ ok: boolean }>('/users', {
-      name: 'John',
-    });
+    const result = await client.post<{ ok: boolean }>(
+      '/users',
+      {
+        name: 'John',
+      },
+      { idempotencyKey: 'idem-123' },
+    );
 
     expect(result).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry POST requests without idempotencyKey even when POST is allowed', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: 'server error' }), {
+        status: 500,
+        headers: {
+          'content-type': 'application/json',
+        },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        retryMethods: ['POST'],
+        retryOn: ['5xx'],
+        baseDelayMs: 0,
+      },
+    });
+
+    await expect(client.post('/payments', { amount: 100 })).rejects.toThrow();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries POST requests with idempotencyKey when POST is allowed', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'server error' }), {
+          status: 500,
+          headers: {
+            'content-type': 'application/json',
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 2,
+        retryMethods: ['POST'],
+        retryOn: ['5xx'],
+        baseDelayMs: 0,
+      },
+    });
+
+    await expect(
+      client.post('/payments', { amount: 100 }, { idempotencyKey: 'idem-123' }),
+    ).resolves.toEqual({ ok: true });
+
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
