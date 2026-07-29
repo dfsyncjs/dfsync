@@ -286,6 +286,29 @@ When both `responseSchema` and `validateResponse` are configured, precedence is:
 request-level beats client-level, and within the same level `responseSchema` beats
 `validateResponse`.
 
+### Zod adapter
+
+A ready-made adapter for [zod](https://zod.dev) is available from a dedicated subpath.
+`zod` is an optional peer dependency — it is only required if you use this adapter, and it
+adds no runtime dependency to the core package.
+
+```bash
+npm install zod
+```
+
+```ts
+import { z } from 'zod';
+import { createClient } from '@dfsync/client';
+import { zodAdapter } from '@dfsync/client/adapters/zod';
+
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  responseSchema: zodAdapter(z.object({ id: z.string() })),
+});
+
+// On validation failure, the zod error is available on `error.issues`.
+```
+
 ## Custom serialization and parsing
 
 By default, `@dfsync/client` serializes object bodies as JSON and parses responses based on

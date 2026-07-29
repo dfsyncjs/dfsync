@@ -11,6 +11,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./adapters/zod": {
+      "types": "./dist/adapters/zod.d.ts",
+      "import": "./dist/adapters/zod.js",
+      "require": "./dist/adapters/zod.cjs"
     }
   },
   "files": [
@@ -56,11 +61,20 @@
     "lint:fix": "eslint . --fix",
     "prepublishOnly": "pnpm run typecheck && pnpm run test && npm pack --dry-run"
   },
+  "peerDependencies": {
+    "zod": "^3.23.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^22.13.10",
     "@vitest/coverage-v8": "^3.0.8",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.8"
+    "vitest": "^3.0.8",
+    "zod": "^3.23.0"
   }
 }
