@@ -262,6 +262,59 @@ try {
 
 Validation failures are not retried by default.
 
+## Retry
+
+Retries are configured via the `retry` option on the client or per request. Requests are
+retried only for transient failures: network errors, `5xx`, and `429` responses.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  retry: {
+    attempts: 3, // number of retries after the first attempt
+    backoff: 'exponential', // 'exponential' (default) or 'fixed'
+    baseDelayMs: 300,
+    retryOn: ['network-error', '5xx'],
+    retryMethods: ['GET', 'PUT', 'DELETE'],
+    jitter: true, // spread retries with full jitter (default: false)
+    maxElapsedMs: 10_000, // overall retry budget
+    shouldRetry(ctx) {
+      // additional gate; can only restrict retries, never widen them
+      return ctx.attempt < 2;
+    },
+  },
+});
+```
+
+### Jitter
+
+Setting `jitter: true` applies full jitter to backoff delays — each delay is chosen
+uniformly between `0` and the computed backoff. This helps avoid retry storms when many
+clients fail at the same time. Jitter is disabled by default and is never applied to
+server-directed `Retry-After` delays.
+
+### Retry budget
+
+`maxElapsedMs` caps the total time spent retrying, measured from the first attempt. When
+waiting the next delay would push the elapsed time past the budget, the client stops
+retrying and throws the last error instead of waiting. This keeps worst-case latency
+bounded and predictable.
+
+### Custom retry conditions
+
+`shouldRetry` is an optional predicate that runs only after the built-in rules already
+decided a request is retryable. It can further restrict retries (return `false` to stop),
+but it can never make non-retryable errors — such as validation failures or `4xx`
+responses — retryable.
+
+```ts
+retry: {
+  shouldRetry({ error, attempt, maxAttempts, requestId, method }) {
+    return attempt < 1; // only ever retry once
+  },
+}
+```
+
 ## Idempotency keys
 
 For operations that may be retried safely, you can attach an idempotency key per request.

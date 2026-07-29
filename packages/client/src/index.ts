@@ -14,6 +14,8 @@ export type {
   RetryConfig,
   RetryCondition,
   RetryBackoff,
+  RetryPredicate,
+  RetryPredicateContext,
   ResponseValidator,
 } from './types/config';
 export type {

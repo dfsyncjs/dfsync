@@ -75,6 +75,52 @@ describe('getRetryDelayFromError', () => {
     });
   });
 
+  it('applies jitter to backoff delays', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+    const error = new NetworkError('Network request failed');
+
+    const result = getRetryDelayFromError({
+      error,
+      attempt: 2,
+      backoff: 'exponential',
+      baseDelayMs: 250,
+      jitter: true,
+    });
+
+    expect(result).toEqual({
+      delayMs: 250, // 0.5 * (250 * 2^1)
+      source: 'backoff',
+    });
+  });
+
+  it('does not jitter Retry-After delays', () => {
+    const randomSpy = vi.spyOn(Math, 'random');
+
+    const response = new Response('Too Many Requests', {
+      status: 429,
+      headers: {
+        'retry-after': '5',
+      },
+    });
+
+    const error = new HttpError(response);
+
+    const result = getRetryDelayFromError({
+      error,
+      attempt: 1,
+      backoff: 'exponential',
+      baseDelayMs: 200,
+      jitter: true,
+    });
+
+    expect(result).toEqual({
+      delayMs: 5_000,
+      source: 'retry-after',
+    });
+    expect(randomSpy).not.toHaveBeenCalled();
+  });
+
   it('uses backoff for non-HttpError errors', () => {
     const error = new NetworkError('Network request failed');
 

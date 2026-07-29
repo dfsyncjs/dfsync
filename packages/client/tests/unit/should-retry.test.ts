@@ -4,15 +4,16 @@ import { NetworkError } from '../../src/errors/network-error';
 import { ValidationError } from '../../src/errors/validation-error';
 import { RequestAbortedError } from '../../src/errors/request-aborted-error';
 import { shouldRetry } from '../../src/core/should-retry';
-import type { RetryConfig } from '../../src/types/config';
+import type { ResolvedRetryConfig } from '../../src/core/resolve-runtime-config';
 import type { RequestMethod } from '../../src/types/request';
 
-const defaultRetry: Required<RetryConfig> = {
+const defaultRetry: ResolvedRetryConfig = {
   attempts: 2,
   backoff: 'exponential',
   baseDelayMs: 300,
   retryOn: ['network-error', '5xx'],
   retryMethods: ['GET', 'PUT', 'DELETE'],
+  jitter: false,
 };
 
 function createHttpError(status: number, statusText = 'Error'): HttpError {
@@ -40,7 +41,7 @@ function createParams(
   overrides: Partial<{
     attempt: number;
     method: RequestMethod;
-    retry: Required<RetryConfig>;
+    retry: ResolvedRetryConfig;
     idempotencyKey?: string;
     error: unknown;
   }> = {},

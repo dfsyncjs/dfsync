@@ -33,6 +33,18 @@ function finalizeExecution(execution: ExecutionContext): void {
   execution.durationMs = endedAt - execution.startedAt;
 }
 
+async function failWithError(
+  clientConfig: ClientConfig,
+  execution: ExecutionContext,
+  error: Error,
+): Promise<never> {
+  finalizeExecution(execution);
+  attachErrorContext(error, execution);
+
+  await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
+  throw error;
+}
+
 export async function request<T>(
   clientConfig: ClientConfig,
   requestConfig: RequestConfig,
@@ -43,6 +55,7 @@ export async function request<T>(
 
   let lastError: Error | undefined;
   const requestId = requestConfig.requestId ?? Math.random().toString(36).slice(2);
+  const overallStartedAt = Date.now();
 
   for (let attempt = 0; attempt <= retry.attempts; attempt++) {
     const headers: HeadersMap = {
@@ -135,21 +148,28 @@ export async function request<T>(
       });
 
       if (!canRetry) {
-        finalizeExecution(execution);
-        attachErrorContext(error, execution);
-
-        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
-        throw error;
+        return failWithError(clientConfig, execution, error);
       }
 
       const retryReason = getRetryReason(error);
 
       if (!retryReason) {
-        finalizeExecution(execution);
-        attachErrorContext(error, execution);
+        return failWithError(clientConfig, execution, error);
+      }
 
-        await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
-        throw error;
+      // Custom retry gate runs only after built-in rules already allow a retry,
+      // so it can restrict retries but never widen them.
+      if (
+        retry.shouldRetry &&
+        !retry.shouldRetry({
+          error,
+          attempt: execution.attempt,
+          maxAttempts: execution.maxAttempts,
+          requestId: execution.requestId,
+          method: execution.request.method,
+        })
+      ) {
+        return failWithError(clientConfig, execution, error);
       }
 
       const { delayMs, source } = getRetryDelayFromError({
@@ -157,7 +177,16 @@ export async function request<T>(
         attempt: execution.attempt + 1,
         backoff: retry.backoff,
         baseDelayMs: retry.baseDelayMs,
+        jitter: retry.jitter,
       });
+
+      // Stop retrying when waiting the next delay would exceed the retry budget.
+      if (
+        retry.maxElapsedMs !== undefined &&
+        Date.now() - overallStartedAt + delayMs > retry.maxElapsedMs
+      ) {
+        return failWithError(clientConfig, execution, error);
+      }
 
       await runHooksSafely(
         clientConfig.hooks?.onRetry,
