@@ -1,5 +1,7 @@
+import { DfsyncError } from '../errors/base-error';
 import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
+import { ParseError } from '../errors/parse-error';
 import { ValidationError } from '../errors/validation-error';
 import type { HeadersMap } from '../types/common';
 import type { ClientConfig, SerializerContext } from '../types/config';
@@ -19,6 +21,7 @@ import {
 } from './hook-context';
 import { getRetryDelayFromError } from './get-retry-delay-from-error';
 import { getRetryReason } from './get-retry-reason';
+import { isAbortError } from './is-abort-error';
 import { normalizeError } from './normalize-error';
 import { parseResponse } from './parse-response';
 import { resolveResponseValidator } from './resolve-response-validator';
@@ -133,10 +136,29 @@ export async function request<T>(
       response = await fetchImpl(execution.url.toString(), init);
 
       const parse = execution.request.parseResponse ?? clientConfig.parseResponse;
-      data = parse ? await parse(response, serializerContext) : await parseResponse(response);
 
+      let parseFailure: { cause: unknown } | undefined;
+
+      try {
+        data = parse ? await parse(response, serializerContext) : await parseResponse(response);
+      } catch (rawParseError) {
+        // Abort errors keep their own classification (timeout vs cancellation), and
+        // `DfsyncError` instances are never re-wrapped, so both are rethrown as-is.
+        if (rawParseError instanceof DfsyncError || isAbortError(rawParseError)) {
+          throw rawParseError;
+        }
+
+        parseFailure = { cause: rawParseError };
+      }
+
+      // A failed response is classified by its status even when its body could not be
+      // parsed, so a parsing failure never masks the HTTP status or its retry behavior.
       if (!response.ok) {
         throw new HttpError(response, data);
+      }
+
+      if (parseFailure) {
+        throw new ParseError(response, parseFailure.cause);
       }
 
       // Effective validator: a request-level option beats a client-level one,

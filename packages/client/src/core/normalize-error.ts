@@ -3,6 +3,7 @@ import { NetworkError } from '../errors/network-error';
 import { TimeoutError } from '../errors/timeout-error';
 import { RequestAbortedError } from '../errors/request-aborted-error';
 import type { RequestAbortReason } from './create-request-controller';
+import { isAbortError } from './is-abort-error';
 
 export function normalizeError(
   error: unknown,
@@ -13,7 +14,7 @@ export function normalizeError(
     return error;
   }
 
-  if (error instanceof Error && error.name === 'AbortError') {
+  if (isAbortError(error)) {
     if (abortReason === 'external') {
       return new RequestAbortedError(error);
     }

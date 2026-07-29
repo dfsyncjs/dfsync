@@ -129,6 +129,9 @@ Planned features:
 
 - stable and fully documented public API
 - finalized request lifecycle model
+  - response parsing failures classified as contract errors (`ParseError`) instead of
+    transport errors, and never retried
+  - failed responses classified by status even when their body cannot be parsed
 - production-ready retry and timeout behavior
 - first-class validation support
 - stable and versioned extension interfaces

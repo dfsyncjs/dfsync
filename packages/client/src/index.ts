@@ -4,6 +4,7 @@ export { createTelemetryHooks } from './core/telemetry';
 export { DfsyncError } from './errors/base-error';
 export { HttpError } from './errors/http-error';
 export { NetworkError } from './errors/network-error';
+export { ParseError } from './errors/parse-error';
 export { TimeoutError } from './errors/timeout-error';
 export { ValidationError } from './errors/validation-error';
 export { RequestAbortedError } from './errors/request-aborted-error';

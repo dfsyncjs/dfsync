@@ -199,10 +199,14 @@ Cancellation is treated differently from timeouts:
 - `HttpError` — non-2xx responses
 - `NetworkError` — network failures
 - `TimeoutError` — request timed out
+- `ParseError` — response body could not be parsed
 - `ValidationError` — response validation failed
 - `RequestAbortedError` — request was cancelled
 
 This allows you to handle failures more precisely.
+
+`ParseError` and `ValidationError` are contract errors rather than transport errors: they mean
+the response arrived but did not match what the caller can work with. Neither is retried.
 
 ### Error metadata
 
@@ -226,8 +230,9 @@ try {
 ```
 
 Response details remain available on the errors that have them: `HttpError` exposes
-`status`, `statusText`, `data`, and `response`, and `ValidationError` exposes `data`,
-`response`, and `issues` (adapter-specific validation details).
+`status`, `statusText`, `data`, and `response`, `ValidationError` exposes `data`,
+`response`, and `issues` (adapter-specific validation details), and `ParseError` exposes
+`response` plus the original parsing failure as `cause`.
 
 ## Response validation
 
@@ -365,6 +370,33 @@ const client = createClient({
 Both options can be set at the client level or overridden per request, and both receive a
 lightweight context (`{ request, requestId }`). When not configured, the default JSON
 behavior is preserved.
+
+### When parsing fails
+
+A parsing failure is a contract error, not a transport error, so it is classified
+accordingly and never retried:
+
+- a successful response whose body cannot be parsed throws `ParseError`, with the original
+  failure available as `cause`
+- a failed response is still classified by its status, so a `404` with an unparsable body
+  throws `HttpError` (with `data` left `undefined`) rather than hiding the status
+- retry behavior for failed responses is unchanged: a `5xx` with an unparsable body is
+  still retried according to `retryOn`
+
+This applies to the default parser too — a `200` response advertising
+`content-type: application/json` with a malformed body throws `ParseError`.
+
+```ts
+import { ParseError } from '@dfsync/client';
+
+try {
+  await client.get('/users/1');
+} catch (error) {
+  if (error instanceof ParseError) {
+    console.error(error.response.status, error.cause);
+  }
+}
+```
 
 ## Retry
 
