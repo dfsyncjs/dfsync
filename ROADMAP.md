@@ -67,7 +67,9 @@ Delivered:
 
 Focus: stabilizing core APIs, improving extensibility, and preparing `@dfsync/client` for production-scale usage and future SaaS integration.
 
-Planned features:
+Status: completed
+
+Delivered:
 
 - stable validation API (finalized `responseSchema` contract)
   - validation must run after response parsing
@@ -91,7 +93,7 @@ Planned features:
   - `HttpError`
   - `NetworkError`
   - `TimeoutError`
-  - `AbortError`
+  - `RequestAbortedError`
   - `ValidationError`
   - must preserve backward compatibility
   - must not change existing error inheritance unexpectedly
