@@ -98,6 +98,7 @@ A request in `@dfsync/client` follows a predictable lifecycle:
 Each request is executed within a request context that contains:
 
 - `requestId` — unique identifier for the request
+- `operationName` — optional human-readable operation label (when provided)
 - `attempt` — current retry attempt
 - `signal` — AbortSignal for cancellation
 - `startedAt` — request start timestamp
@@ -129,6 +130,31 @@ await client.get('/users', {
   },
 });
 ```
+
+## Operation name
+
+You can attach an optional `operationName` to a request to label it with a stable,
+human-readable name. It is part of the request context and is exposed in all lifecycle
+hooks, which makes it useful for logging, tracing, and telemetry.
+
+```ts
+await client.get('/users', {
+  operationName: 'listUsers',
+});
+```
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    afterResponse(ctx) {
+      console.log(ctx.operationName); // 'listUsers'
+    },
+  },
+});
+```
+
+`operationName` does not affect request behavior — it is metadata only.
 
 ## Request cancellation
 

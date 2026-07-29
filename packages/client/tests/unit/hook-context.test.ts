@@ -90,6 +90,28 @@ describe('hook-context', () => {
     expect(ctx.signal).toBe(execution.request.signal);
   });
 
+  it('exposes operationName when set on the request', () => {
+    const execution = createExecutionContextMock({
+      request: {
+        method: 'GET',
+        path: '/users',
+        operationName: 'listUsers',
+      },
+    });
+
+    const ctx = createBeforeRequestContext(execution);
+
+    expect(ctx.operationName).toBe('listUsers');
+  });
+
+  it('omits operationName when not set on the request', () => {
+    const execution = createExecutionContextMock();
+
+    const ctx = createBeforeRequestContext(execution);
+
+    expect(ctx).not.toHaveProperty('operationName');
+  });
+
   it('creates retry context with retry metadata', () => {
     const execution = createExecutionContextMock({
       endedAt: 1700000000150,
