@@ -132,6 +132,12 @@ Do NOT:
 
 ## Current focus
 
-Release: 0.9.x — Platform readiness & API stabilization
+Release: 1.0.x — Stable core & production readiness
+
+0.9.x (Platform readiness & API stabilization) is complete: `operationName`, extended error
+metadata, improved retry model (`maxElapsedMs`, jitter, custom `shouldRetry`), serializer /
+parser extensibility, the `responseSchema` validation adapter API with a zod adapter, and
+the stable public extension interfaces (auth provider, validation adapter, retry policy,
+telemetry exporter).
 
 Always check the root `ROADMAP.md` before making release-related changes.

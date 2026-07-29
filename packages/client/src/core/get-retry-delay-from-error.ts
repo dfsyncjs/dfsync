@@ -10,6 +10,7 @@ type GetRetryDelayFromErrorParams = {
   attempt: number;
   backoff: RetryBackoff;
   baseDelayMs: number;
+  jitter?: boolean;
 };
 
 type RetryDelayResult = {
@@ -22,12 +23,14 @@ export function getRetryDelayFromError({
   attempt,
   backoff,
   baseDelayMs,
+  jitter,
 }: GetRetryDelayFromErrorParams): RetryDelayResult {
   if (error instanceof HttpError) {
     const retryAfter = error.response.headers.get('retry-after');
     const retryAfterDelayMs = parseRetryAfter(retryAfter);
 
     if (retryAfterDelayMs !== undefined) {
+      // Retry-After is server-directed and must not be jittered.
       return {
         delayMs: retryAfterDelayMs,
         source: 'retry-after',
@@ -40,6 +43,7 @@ export function getRetryDelayFromError({
       attempt,
       backoff,
       baseDelayMs,
+      jitter,
     }),
     source: 'backoff',
   };

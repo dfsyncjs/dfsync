@@ -39,6 +39,23 @@ const updatedUser = await client.patch('/users/1', {
 });
 ```
 
+## Documentation
+
+This README covers the essentials. For the full, in-depth documentation see the
+[documentation site](https://dfsyncjs.github.io/#/docs/client).
+
+Guides by use case:
+
+- **Reliable requests** — [Retry](#retry), [Idempotency keys](#idempotency-keys),
+  [Request cancellation](#request-cancellation)
+- **Validation & data shape** — [Response validation](#response-validation),
+  [Schema adapters](#schema-adapters-responseschema),
+  [Custom serialization and parsing](#custom-serialization-and-parsing)
+- **Observability & tracing** — [Request ID](#request-id), [Operation name](#operation-name),
+  [Observability](#observability), [Errors](#errors)
+- **Extensibility** — [Extension interfaces](#extension-interfaces) (auth provider,
+  validation adapter, retry policy, telemetry exporter)
+
 ## HTTP methods
 
 `@dfsync/client` provides a small and predictable method surface:
@@ -98,6 +115,7 @@ A request in `@dfsync/client` follows a predictable lifecycle:
 Each request is executed within a request context that contains:
 
 - `requestId` — unique identifier for the request
+- `operationName` — optional human-readable operation label (when provided)
 - `attempt` — current retry attempt
 - `signal` — AbortSignal for cancellation
 - `startedAt` — request start timestamp
@@ -130,6 +148,31 @@ await client.get('/users', {
 });
 ```
 
+## Operation name
+
+You can attach an optional `operationName` to a request to label it with a stable,
+human-readable name. It is part of the request context and is exposed in all lifecycle
+hooks, which makes it useful for logging, tracing, and telemetry.
+
+```ts
+await client.get('/users', {
+  operationName: 'listUsers',
+});
+```
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: {
+    afterResponse(ctx) {
+      console.log(ctx.operationName); // 'listUsers'
+    },
+  },
+});
+```
+
+`operationName` does not affect request behavior — it is metadata only.
+
 ## Request cancellation
 
 Requests can be cancelled using `AbortSignal`:
@@ -160,6 +203,31 @@ Cancellation is treated differently from timeouts:
 - `RequestAbortedError` — request was cancelled
 
 This allows you to handle failures more precisely.
+
+### Error metadata
+
+Every error thrown from the request lifecycle extends `DfsyncError` and carries request
+context metadata, so you can correlate failures without relying on lifecycle hooks:
+
+- `requestId` — the request identifier (matches `x-request-id`)
+- `attempt` — the attempt number on which the request ultimately failed
+- `durationMs` — total time spent before the error was thrown
+
+```ts
+import { DfsyncError } from '@dfsync/client';
+
+try {
+  await client.get('/users/1', { requestId: 'req_123' });
+} catch (error) {
+  if (error instanceof DfsyncError) {
+    console.log(error.requestId, error.attempt, error.durationMs);
+  }
+}
+```
+
+Response details remain available on the errors that have them: `HttpError` exposes
+`status`, `statusText`, `data`, and `response`, and `ValidationError` exposes `data`,
+`response`, and `issues` (adapter-specific validation details).
 
 ## Response validation
 
@@ -210,6 +278,146 @@ try {
 ```
 
 Validation failures are not retried by default.
+
+### Schema adapters (`responseSchema`)
+
+For richer validation, `responseSchema` accepts a `safeParse`-style adapter that returns a
+`ValidationResult` (`{ success, data?, error? }`). When `success` is `false`, the client
+throws a `ValidationError` and exposes the adapter's `error` on `error.issues`.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  responseSchema(data) {
+    const ok = typeof data === 'object' && data !== null && 'id' in data;
+    return ok ? { success: true } : { success: false, error: 'missing id' };
+  },
+});
+```
+
+This is the contract schema-library adapters build on (see the zod adapter below). In this
+version, validation does not replace the response — the original parsed data is returned
+even when the adapter reports transformed `data`.
+
+When both `responseSchema` and `validateResponse` are configured, precedence is:
+request-level beats client-level, and within the same level `responseSchema` beats
+`validateResponse`.
+
+### Zod adapter
+
+A ready-made adapter for [zod](https://zod.dev) is available from a dedicated subpath.
+`zod` is an optional peer dependency — it is only required if you use this adapter, and it
+adds no runtime dependency to the core package.
+
+```bash
+npm install zod
+```
+
+```ts
+import { z } from 'zod';
+import { createClient } from '@dfsync/client';
+import { zodAdapter } from '@dfsync/client/adapters/zod';
+
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  responseSchema: zodAdapter(z.object({ id: z.string() })),
+});
+
+// On validation failure, the zod error is available on `error.issues`.
+```
+
+## Custom serialization and parsing
+
+By default, `@dfsync/client` serializes object bodies as JSON and parses responses based on
+their `content-type` (JSON or text, with `204` yielding `undefined`). You can override both
+sides of the pipeline when you need a different format.
+
+`serializeBody` turns a request body into a `fetch`-compatible body. It is called only when
+a body is present, and its optional `contentType` is applied only when the caller has not
+already set one.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  serializeBody(body) {
+    return {
+      body: new URLSearchParams(body as Record<string, string>).toString(),
+      contentType: 'application/x-www-form-urlencoded',
+    };
+  },
+});
+```
+
+`parseResponse` turns a response into data. It runs for every response — successful and
+error — before classification and validation, so `HttpError.data` and any configured
+`validateResponse` both operate on the parsed value.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  async parseResponse(response) {
+    const text = await response.text();
+    return Object.fromEntries(new URLSearchParams(text));
+  },
+});
+```
+
+Both options can be set at the client level or overridden per request, and both receive a
+lightweight context (`{ request, requestId }`). When not configured, the default JSON
+behavior is preserved.
+
+## Retry
+
+Retries are configured via the `retry` option on the client or per request. Requests are
+retried only for transient failures: network errors, `5xx`, and `429` responses.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  retry: {
+    attempts: 3, // number of retries after the first attempt
+    backoff: 'exponential', // 'exponential' (default) or 'fixed'
+    baseDelayMs: 300,
+    retryOn: ['network-error', '5xx'],
+    retryMethods: ['GET', 'PUT', 'DELETE'],
+    jitter: true, // spread retries with full jitter (default: false)
+    maxElapsedMs: 10_000, // overall retry budget
+    shouldRetry(ctx) {
+      // additional gate; can only restrict retries, never widen them
+      return ctx.attempt < 2;
+    },
+  },
+});
+```
+
+### Jitter
+
+Setting `jitter: true` applies full jitter to backoff delays — each delay is chosen
+uniformly between `0` and the computed backoff. This helps avoid retry storms when many
+clients fail at the same time. Jitter is disabled by default and is never applied to
+server-directed `Retry-After` delays.
+
+### Retry budget
+
+`maxElapsedMs` caps the total time spent retrying, measured from the first attempt. When
+waiting the next delay would push the elapsed time past the budget, the client stops
+retrying and throws the last error instead of waiting. This keeps worst-case latency
+bounded and predictable.
+
+### Custom retry conditions
+
+`shouldRetry` is an optional predicate that runs only after the built-in rules already
+decided a request is retryable. It can further restrict retries (return `false` to stop),
+but it can never make non-retryable errors — such as validation failures or `4xx`
+responses — retryable.
+
+```ts
+retry: {
+  shouldRetry({ error, attempt, maxAttempts, requestId, method }) {
+    return attempt < 1; // only ever retry once
+  },
+}
+```
 
 ## Idempotency keys
 
@@ -319,6 +527,49 @@ This makes it easier to understand:
 - what happened during a request
 - how retries behaved
 - how long requests actually took
+
+## Extension interfaces
+
+`@dfsync/client` exposes a small, stable set of interfaces for extending the client. They
+are intentionally minimal and built on the existing request lifecycle.
+
+- **Auth provider** — `AuthProvider` (`(ctx: AuthContext) => void | Promise<void>`) is the
+  contract behind `{ type: 'custom' }` auth. It applies authentication by mutating the
+  request headers or URL.
+- **Validation adapter** — `ValidationAdapter` is the `safeParse`-style contract used by
+  `responseSchema` (see [Schema adapters](#schema-adapters-responseschema)).
+- **Retry policy** — `RetryPredicate` (`retry.shouldRetry`) is the contract for custom
+  retry conditions (see [Custom retry conditions](#custom-retry-conditions)).
+- **Telemetry exporter** — `TelemetryExporter` is a telemetry sink that observes the
+  request lifecycle. Map it onto the client's hooks with `createTelemetryHooks`.
+
+```ts
+import { createClient, createTelemetryHooks } from '@dfsync/client';
+import type { TelemetryExporter } from '@dfsync/client';
+
+const exporter: TelemetryExporter = {
+  onRequestStart(ctx) {
+    console.log('start', ctx.operationName, ctx.requestId);
+  },
+  onRequestSuccess(ctx) {
+    console.log('done', ctx.durationMs);
+  },
+  onRequestError(ctx) {
+    console.error('error', ctx.error);
+  },
+  onRequestRetry(ctx) {
+    console.warn('retry', ctx.retryReason);
+  },
+};
+
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: createTelemetryHooks(exporter),
+});
+```
+
+`createTelemetryHooks` returns a standard `HooksConfig`, so telemetry uses the same
+lifecycle mechanism as regular hooks — no separate runtime path.
 
 ## Roadmap
 

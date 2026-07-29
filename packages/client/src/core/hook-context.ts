@@ -18,6 +18,9 @@ function createLifecycleContextBase(execution: ExecutionContext): LifecycleConte
     attempt: execution.attempt,
     maxAttempts: execution.maxAttempts,
     requestId: execution.requestId,
+    ...(execution.request.operationName !== undefined
+      ? { operationName: execution.request.operationName }
+      : {}),
     startedAt: execution.startedAt,
     ...(execution.endedAt !== undefined ? { endedAt: execution.endedAt } : {}),
     ...(execution.durationMs !== undefined ? { durationMs: execution.durationMs } : {}),

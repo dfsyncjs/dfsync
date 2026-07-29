@@ -1,14 +1,12 @@
 import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
-import type { RetryConfig } from '../types/config';
+import type { ResolvedRetryConfig } from './resolve-runtime-config';
 import type { RequestMethod } from '../types/request';
-
-type NormalizedRetryConfig = Required<RetryConfig>;
 
 type ShouldRetryParams = {
   attempt: number;
   method: RequestMethod;
-  retry: NormalizedRetryConfig;
+  retry: ResolvedRetryConfig;
   idempotencyKey?: string | undefined;
   error: unknown;
 };

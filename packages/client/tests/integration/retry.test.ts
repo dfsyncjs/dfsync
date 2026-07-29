@@ -634,4 +634,172 @@ describe('client retry', () => {
     expect(beforeFirst.requestId).toBe(beforeSecond.requestId);
     expect(beforeFirst.requestId).toBe(retryCtx.requestId);
   });
+
+  it('stops retrying when the next delay would exceed the retry budget', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Service Unavailable' }), {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const onRetry = vi.fn();
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 5,
+        backoff: 'fixed',
+        baseDelayMs: 1000,
+        maxElapsedMs: 10,
+        retryOn: ['5xx'],
+        retryMethods: ['GET'],
+      },
+      hooks: { onRetry },
+    });
+
+    await expect(client.get('/users')).rejects.toBeInstanceOf(HttpError);
+
+    // The first delay (1000ms) already exceeds the 10ms budget, so no retry runs.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it('honors the retry budget across attempts and still succeeds within it', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'Service Unavailable' }), {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        backoff: 'fixed',
+        baseDelayMs: 0,
+        maxElapsedMs: 10_000,
+        retryOn: ['5xx'],
+        retryMethods: ['GET'],
+      },
+    });
+
+    await expect(client.get<{ ok: boolean }>('/users')).resolves.toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry when a custom shouldRetry predicate returns false', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Service Unavailable' }), {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const shouldRetry = vi.fn().mockReturnValue(false);
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        baseDelayMs: 0,
+        retryOn: ['5xx'],
+        retryMethods: ['GET'],
+        shouldRetry,
+      },
+    });
+
+    await expect(client.get('/users')).rejects.toBeInstanceOf(HttpError);
+
+    // Built-in rules allow the retry, but the predicate vetoes it.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(shouldRetry).toHaveBeenCalledTimes(1);
+    expect(getFirstMockCall(shouldRetry)[0]).toEqual(
+      expect.objectContaining({
+        attempt: 0,
+        maxAttempts: 4,
+        method: 'GET',
+      }),
+    );
+  });
+
+  it('retries when a custom shouldRetry predicate returns true', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'Service Unavailable' }), {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const shouldRetry = vi.fn().mockReturnValue(true);
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        baseDelayMs: 0,
+        retryOn: ['5xx'],
+        retryMethods: ['GET'],
+        shouldRetry,
+      },
+    });
+
+    await expect(client.get<{ ok: boolean }>('/users')).resolves.toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not consult a custom shouldRetry predicate for non-retryable errors', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Bad Request' }), {
+        status: 400,
+        statusText: 'Bad Request',
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const shouldRetry = vi.fn().mockReturnValue(true);
+
+    const client = createClient({
+      baseUrl: 'https://api.test.com',
+      fetch: fetchMock,
+      retry: {
+        attempts: 3,
+        baseDelayMs: 0,
+        retryOn: ['5xx'],
+        retryMethods: ['GET'],
+        shouldRetry,
+      },
+    });
+
+    await expect(client.get('/users')).rejects.toBeInstanceOf(HttpError);
+
+    // 4xx is never retryable; the predicate cannot widen that.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(shouldRetry).not.toHaveBeenCalled();
+  });
 });

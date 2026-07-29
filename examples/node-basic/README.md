@@ -16,4 +16,5 @@ pnpm example:bearer-auth
 pnpm example:hooks
 pnpm example:custom-auth
 pnpm example:retry
+pnpm example:serializer
 ```

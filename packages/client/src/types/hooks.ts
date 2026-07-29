@@ -14,6 +14,7 @@ type LifecycleContextBase = {
   attempt: number;
   maxAttempts: number;
   requestId: string;
+  operationName?: string;
   startedAt: number;
   endedAt?: number;
   durationMs?: number;

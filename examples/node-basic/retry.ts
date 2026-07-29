@@ -6,6 +6,10 @@ const client = createClient({
     attempts: 2,
     backoff: 'exponential',
     baseDelayMs: 300,
+    // Spread retries with full jitter to avoid retry storms.
+    jitter: true,
+    // Cap the total time spent retrying, measured from the first attempt.
+    maxElapsedMs: 5_000,
   },
 });
 

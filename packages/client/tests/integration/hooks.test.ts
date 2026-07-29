@@ -367,4 +367,54 @@ describe('request hooks', () => {
     expect(firstCall).toBeDefined();
     expect(firstCall![0].error).toBeInstanceOf(RequestAbortedError);
   });
+
+  it('exposes operationName in lifecycle hooks when provided', async () => {
+    const beforeRequest = vi.fn();
+    const afterResponse = vi.fn();
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      hooks: { beforeRequest, afterResponse },
+    });
+
+    await client.get('/users', {
+      operationName: 'listUsers',
+    });
+
+    expect(getFirstMockCall(beforeRequest)[0]).toEqual(
+      expect.objectContaining({ operationName: 'listUsers' }),
+    );
+    expect(getFirstMockCall(afterResponse)[0]).toEqual(
+      expect.objectContaining({ operationName: 'listUsers' }),
+    );
+  });
+
+  it('does not expose operationName when not provided', async () => {
+    const beforeRequest = vi.fn();
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const client = createClient({
+      baseUrl: 'https://api.example.com',
+      fetch: fetchMock,
+      hooks: { beforeRequest },
+    });
+
+    await client.get('/users');
+
+    expect(getFirstMockCall(beforeRequest)[0]).not.toHaveProperty('operationName');
+  });
 });
