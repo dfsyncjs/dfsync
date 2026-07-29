@@ -17,6 +17,10 @@ export type {
   RetryPredicate,
   RetryPredicateContext,
   ResponseValidator,
+  BodySerializer,
+  ResponseParser,
+  SerializedBody,
+  SerializerContext,
 } from './types/config';
 export type {
   AfterResponseContext,

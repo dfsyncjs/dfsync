@@ -262,6 +262,46 @@ try {
 
 Validation failures are not retried by default.
 
+## Custom serialization and parsing
+
+By default, `@dfsync/client` serializes object bodies as JSON and parses responses based on
+their `content-type` (JSON or text, with `204` yielding `undefined`). You can override both
+sides of the pipeline when you need a different format.
+
+`serializeBody` turns a request body into a `fetch`-compatible body. It is called only when
+a body is present, and its optional `contentType` is applied only when the caller has not
+already set one.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  serializeBody(body) {
+    return {
+      body: new URLSearchParams(body as Record<string, string>).toString(),
+      contentType: 'application/x-www-form-urlencoded',
+    };
+  },
+});
+```
+
+`parseResponse` turns a response into data. It runs for every response — successful and
+error — before classification and validation, so `HttpError.data` and any configured
+`validateResponse` both operate on the parsed value.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  async parseResponse(response) {
+    const text = await response.text();
+    return Object.fromEntries(new URLSearchParams(text));
+  },
+});
+```
+
+Both options can be set at the client level or overridden per request, and both receive a
+lightweight context (`{ request, requestId }`). When not configured, the default JSON
+behavior is preserved.
+
 ## Retry
 
 Retries are configured via the `retry` option on the client or per request. Requests are

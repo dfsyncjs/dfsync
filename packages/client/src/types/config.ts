@@ -1,11 +1,44 @@
 import type { HeadersMap } from './common';
 import type { AuthConfig } from './auth';
 import type { HooksConfig } from './hooks';
-import type { RequestMethod } from './request';
+import type { RequestConfig, RequestMethod } from './request';
 
 export type ResponseValidator<TData = unknown> = (
   data: TData,
 ) => boolean | void | Promise<boolean | void>;
+
+/** Lightweight context passed to custom serializers and parsers. */
+export type SerializerContext = {
+  request: RequestConfig;
+  requestId: string;
+};
+
+export type SerializedBody = {
+  body: BodyInit;
+  /** Content type to set when the caller has not provided one. */
+  contentType?: string;
+};
+
+/**
+ * Serializes a request body into a `fetch`-compatible body. Called only when a
+ * body is present. When not configured, bodies are serialized as JSON (objects)
+ * or sent as-is (strings).
+ */
+export type BodySerializer = (
+  body: unknown,
+  ctx: SerializerContext,
+) => SerializedBody | Promise<SerializedBody>;
+
+/**
+ * Parses a response into data. Runs for every response (successful and error)
+ * before classification and validation, preserving the default pipeline stages.
+ * When not configured, JSON responses are parsed as JSON and everything else as
+ * text (with `204` yielding `undefined`).
+ */
+export type ResponseParser = (
+  response: Response,
+  ctx: SerializerContext,
+) => unknown | Promise<unknown>;
 
 export type RetryCondition = 'network-error' | '5xx' | '429';
 export type RetryBackoff = 'fixed' | 'exponential';
@@ -52,4 +85,6 @@ export type ClientConfig = {
   retry?: RetryConfig;
   fetch?: typeof globalThis.fetch;
   validateResponse?: ResponseValidator;
+  serializeBody?: BodySerializer;
+  parseResponse?: ResponseParser;
 };

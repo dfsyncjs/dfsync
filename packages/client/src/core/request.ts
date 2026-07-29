@@ -2,7 +2,7 @@ import { HttpError } from '../errors/http-error';
 import { NetworkError } from '../errors/network-error';
 import { ValidationError } from '../errors/validation-error';
 import type { HeadersMap } from '../types/common';
-import type { ClientConfig } from '../types/config';
+import type { ClientConfig, SerializerContext } from '../types/config';
 import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
@@ -84,10 +84,25 @@ export async function request<T>(
 
     await runHooks(clientConfig.hooks?.beforeRequest, createBeforeRequestContext(execution));
 
+    const serializerContext: SerializerContext = {
+      request: execution.request,
+      requestId: execution.requestId,
+    };
+
     let body: BodyInit | undefined;
 
     if (execution.request.body !== undefined) {
-      if (typeof execution.request.body === 'string') {
+      const serializeBody = execution.request.serializeBody ?? clientConfig.serializeBody;
+
+      if (serializeBody) {
+        const serialized = await serializeBody(execution.request.body, serializerContext);
+        body = serialized.body;
+
+        if (serialized.contentType) {
+          execution.headers['content-type'] =
+            execution.headers['content-type'] ?? serialized.contentType;
+        }
+      } else if (typeof execution.request.body === 'string') {
         body = execution.request.body;
       } else {
         execution.headers['content-type'] = execution.headers['content-type'] ?? 'application/json';
@@ -115,7 +130,9 @@ export async function request<T>(
       }
 
       response = await fetchImpl(execution.url.toString(), init);
-      data = await parseResponse(response);
+
+      const parse = execution.request.parseResponse ?? clientConfig.parseResponse;
+      data = parse ? await parse(response, serializerContext) : await parseResponse(response);
 
       if (!response.ok) {
         throw new HttpError(response, data);
