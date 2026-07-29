@@ -209,8 +209,8 @@ try {
 ```
 
 Response details remain available on the errors that have them: `HttpError` exposes
-`status`, `statusText`, `data`, and `response`, and `ValidationError` exposes `data` and
-`response`.
+`status`, `statusText`, `data`, and `response`, and `ValidationError` exposes `data`,
+`response`, and `issues` (adapter-specific validation details).
 
 ## Response validation
 
@@ -261,6 +261,30 @@ try {
 ```
 
 Validation failures are not retried by default.
+
+### Schema adapters (`responseSchema`)
+
+For richer validation, `responseSchema` accepts a `safeParse`-style adapter that returns a
+`ValidationResult` (`{ success, data?, error? }`). When `success` is `false`, the client
+throws a `ValidationError` and exposes the adapter's `error` on `error.issues`.
+
+```ts
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  responseSchema(data) {
+    const ok = typeof data === 'object' && data !== null && 'id' in data;
+    return ok ? { success: true } : { success: false, error: 'missing id' };
+  },
+});
+```
+
+This is the contract schema-library adapters build on (see the zod adapter below). In this
+version, validation does not replace the response — the original parsed data is returned
+even when the adapter reports transformed `data`.
+
+When both `responseSchema` and `validateResponse` are configured, precedence is:
+request-level beats client-level, and within the same level `responseSchema` beats
+`validateResponse`.
 
 ## Custom serialization and parsing
 

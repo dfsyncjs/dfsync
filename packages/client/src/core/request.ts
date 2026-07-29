@@ -21,6 +21,7 @@ import { getRetryDelayFromError } from './get-retry-delay-from-error';
 import { getRetryReason } from './get-retry-reason';
 import { normalizeError } from './normalize-error';
 import { parseResponse } from './parse-response';
+import { resolveResponseValidator } from './resolve-response-validator';
 import { resolveRuntimeConfig } from './resolve-runtime-config';
 import { runHooks, runHooksSafely } from './run-hooks';
 import { shouldRetry } from './should-retry';
@@ -138,18 +139,31 @@ export async function request<T>(
         throw new HttpError(response, data);
       }
 
-      const validateResponse = execution.request.validateResponse ?? clientConfig.validateResponse;
+      // Effective validator: a request-level option beats a client-level one,
+      // and within the same level a `responseSchema` adapter beats a
+      // `validateResponse` predicate.
+      const validator = resolveResponseValidator(clientConfig, execution.request);
 
-      if (validateResponse) {
-        const validationResult = await validateResponse(data);
+      if (validator) {
+        let passed: boolean;
+        let issues: unknown;
+
+        if ('schema' in validator) {
+          const result = await validator.schema(data);
+          passed = result.success;
+          issues = result.error;
+        } else {
+          const result = await validator.predicate(data);
+          passed = result !== false;
+        }
 
         execution.validation = {
           enabled: true,
-          passed: validationResult !== false,
+          passed,
         };
 
-        if (validationResult === false) {
-          throw new ValidationError(response, data);
+        if (!passed) {
+          throw new ValidationError(response, data, issues);
         }
       }
     } catch (rawError) {

@@ -1,5 +1,11 @@
 import type { HeadersMap, QueryParams } from './common';
-import type { RetryConfig, ResponseValidator, BodySerializer, ResponseParser } from './config';
+import type {
+  RetryConfig,
+  ResponseValidator,
+  ValidationAdapter,
+  BodySerializer,
+  ResponseParser,
+} from './config';
 
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -16,6 +22,7 @@ export type RequestConfig = {
   operationName?: string;
   idempotencyKey?: string;
   validateResponse?: ResponseValidator;
+  responseSchema?: ValidationAdapter;
   serializeBody?: BodySerializer;
   parseResponse?: ResponseParser;
 };

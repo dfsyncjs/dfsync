@@ -17,6 +17,8 @@ export type {
   RetryPredicate,
   RetryPredicateContext,
   ResponseValidator,
+  ValidationAdapter,
+  ValidationResult,
   BodySerializer,
   ResponseParser,
   SerializedBody,

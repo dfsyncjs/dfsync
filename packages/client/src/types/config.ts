@@ -7,6 +7,27 @@ export type ResponseValidator<TData = unknown> = (
   data: TData,
 ) => boolean | void | Promise<boolean | void>;
 
+/**
+ * Result returned by a validation adapter. `success` decides whether validation
+ * passes. `data` is reserved for future response transformation and is not used
+ * to replace the response in this version. `error` carries adapter-specific
+ * details (e.g. schema issues) and is surfaced on the thrown `ValidationError`.
+ */
+export type ValidationResult<TData = unknown> = {
+  success: boolean;
+  data?: TData;
+  error?: unknown;
+};
+
+/**
+ * A `safeParse`-style validation adapter. It receives the parsed response data
+ * and returns a `ValidationResult`. Adapters are lightweight wrappers around a
+ * schema library and must not introduce a runtime dependency into the core.
+ */
+export type ValidationAdapter<TData = unknown> = (
+  data: unknown,
+) => ValidationResult<TData> | Promise<ValidationResult<TData>>;
+
 /** Lightweight context passed to custom serializers and parsers. */
 export type SerializerContext = {
   request: RequestConfig;
@@ -85,6 +106,7 @@ export type ClientConfig = {
   retry?: RetryConfig;
   fetch?: typeof globalThis.fetch;
   validateResponse?: ResponseValidator;
+  responseSchema?: ValidationAdapter;
   serializeBody?: BodySerializer;
   parseResponse?: ResponseParser;
 };
