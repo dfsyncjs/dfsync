@@ -7,6 +7,7 @@ import type { RequestConfig } from '../types/request';
 import { applyAuth } from './apply-auth';
 import { buildUrl } from './build-url';
 import { applyRequestMetadata } from './apply-request-metadata';
+import { attachErrorContext } from './attach-error-context';
 import type { ExecutionContext } from './execution-context';
 import { createExecutionContext } from './execution-context';
 import { createRequestController } from './create-request-controller';
@@ -135,6 +136,7 @@ export async function request<T>(
 
       if (!canRetry) {
         finalizeExecution(execution);
+        attachErrorContext(error, execution);
 
         await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
         throw error;
@@ -144,6 +146,7 @@ export async function request<T>(
 
       if (!retryReason) {
         finalizeExecution(execution);
+        attachErrorContext(error, execution);
 
         await runHooksSafely(clientConfig.hooks?.onError, createErrorContext(execution, error));
         throw error;

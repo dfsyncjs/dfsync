@@ -187,6 +187,31 @@ Cancellation is treated differently from timeouts:
 
 This allows you to handle failures more precisely.
 
+### Error metadata
+
+Every error thrown from the request lifecycle extends `DfsyncError` and carries request
+context metadata, so you can correlate failures without relying on lifecycle hooks:
+
+- `requestId` — the request identifier (matches `x-request-id`)
+- `attempt` — the attempt number on which the request ultimately failed
+- `durationMs` — total time spent before the error was thrown
+
+```ts
+import { DfsyncError } from '@dfsync/client';
+
+try {
+  await client.get('/users/1', { requestId: 'req_123' });
+} catch (error) {
+  if (error instanceof DfsyncError) {
+    console.log(error.requestId, error.attempt, error.durationMs);
+  }
+}
+```
+
+Response details remain available on the errors that have them: `HttpError` exposes
+`status`, `statusText`, `data`, and `response`, and `ValidationError` exposes `data` and
+`response`.
+
 ## Response validation
 
 You can validate successful responses before they are returned to the caller.
