@@ -511,6 +511,49 @@ This makes it easier to understand:
 - how retries behaved
 - how long requests actually took
 
+## Extension interfaces
+
+`@dfsync/client` exposes a small, stable set of interfaces for extending the client. They
+are intentionally minimal and built on the existing request lifecycle.
+
+- **Auth provider** — `AuthProvider` (`(ctx: AuthContext) => void | Promise<void>`) is the
+  contract behind `{ type: 'custom' }` auth. It applies authentication by mutating the
+  request headers or URL.
+- **Validation adapter** — `ValidationAdapter` is the `safeParse`-style contract used by
+  `responseSchema` (see [Schema adapters](#schema-adapters-responseschema)).
+- **Retry policy** — `RetryPredicate` (`retry.shouldRetry`) is the contract for custom
+  retry conditions (see [Custom retry conditions](#custom-retry-conditions)).
+- **Telemetry exporter** — `TelemetryExporter` is a telemetry sink that observes the
+  request lifecycle. Map it onto the client's hooks with `createTelemetryHooks`.
+
+```ts
+import { createClient, createTelemetryHooks } from '@dfsync/client';
+import type { TelemetryExporter } from '@dfsync/client';
+
+const exporter: TelemetryExporter = {
+  onRequestStart(ctx) {
+    console.log('start', ctx.operationName, ctx.requestId);
+  },
+  onRequestSuccess(ctx) {
+    console.log('done', ctx.durationMs);
+  },
+  onRequestError(ctx) {
+    console.error('error', ctx.error);
+  },
+  onRequestRetry(ctx) {
+    console.warn('retry', ctx.retryReason);
+  },
+};
+
+const client = createClient({
+  baseUrl: 'https://api.example.com',
+  hooks: createTelemetryHooks(exporter),
+});
+```
+
+`createTelemetryHooks` returns a standard `HooksConfig`, so telemetry uses the same
+lifecycle mechanism as regular hooks — no separate runtime path.
+
 ## Roadmap
 
 See the [project roadmap](https://github.com/dfsyncjs/dfsync/blob/main/ROADMAP.md)

@@ -1,4 +1,5 @@
 export { createClient } from './core/create-client';
+export { createTelemetryHooks } from './core/telemetry';
 
 export { DfsyncError } from './errors/base-error';
 export { HttpError } from './errors/http-error';
@@ -7,7 +8,8 @@ export { TimeoutError } from './errors/timeout-error';
 export { ValidationError } from './errors/validation-error';
 export { RequestAbortedError } from './errors/request-aborted-error';
 
-export type { AuthConfig } from './types/auth';
+export type { AuthConfig, AuthContext, AuthProvider } from './types/auth';
+export type { TelemetryExporter } from './core/telemetry';
 export type { Client } from './types/client';
 export type {
   ClientConfig,
