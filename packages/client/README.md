@@ -39,6 +39,23 @@ const updatedUser = await client.patch('/users/1', {
 });
 ```
 
+## Documentation
+
+This README covers the essentials. For the full, in-depth documentation see the
+[documentation site](https://dfsyncjs.github.io/#/docs/client).
+
+Guides by use case:
+
+- **Reliable requests** — [Retry](#retry), [Idempotency keys](#idempotency-keys),
+  [Request cancellation](#request-cancellation)
+- **Validation & data shape** — [Response validation](#response-validation),
+  [Schema adapters](#schema-adapters-responseschema),
+  [Custom serialization and parsing](#custom-serialization-and-parsing)
+- **Observability & tracing** — [Request ID](#request-id), [Operation name](#operation-name),
+  [Observability](#observability), [Errors](#errors)
+- **Extensibility** — [Extension interfaces](#extension-interfaces) (auth provider,
+  validation adapter, retry policy, telemetry exporter)
+
 ## HTTP methods
 
 `@dfsync/client` provides a small and predictable method surface:
